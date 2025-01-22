@@ -1,26 +1,46 @@
 package com.ioe_enterprice.inventorytoolsmanagment;
 
-import android.content.Context;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import com.ioe_enterprice.inventorytoolsmanagment.Adapter.OngoingAdapter;
+import com.ioe_enterprice.inventorytoolsmanagment.Domain.OngoingDomain;
+import com.ioe_enterprice.inventorytoolsmanagment.R;
+import com.ioe_enterprice.inventorytoolsmanagment.databinding.ActivityMainBinding;
 
-import static org.junit.Assert.*;
+import java.util.ArrayList;
 
-/**
- * Instrumented test, which will execute on an Android device.
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
- */
-@RunWith(AndroidJUnit4.class)
-public class ExampleInstrumentedTest {
-    @Test
-    public void useAppContext() {
-        // Context of the app under test.
-        Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.ioe_enterprice.inventorytoolsmanagment", appContext.getPackageName());
+public class MainActivity extends AppCompatActivity {
+    private ActivityMainBinding binding;
+    private RecyclerView.Adapter adapterOngoing;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding=ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        initRecyclerView();
+        //bottomNavigationInit();
+    }
+
+    //private void bottomNavigationInit() {
+    //    binding.profileBtn.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, ProfileActivity.class)));
+    //}
+
+    private void initRecyclerView() {
+        ArrayList<OngoingDomain> items=new ArrayList<>();
+        items.add(new OngoingDomain("Food App","June 12, 2023",50,"ongoing1"));
+        items.add(new OngoingDomain("AI Recoding","June 26, 2023",60,"ongoing2"));
+        items.add(new OngoingDomain("Weather App","July 22, 2023",25,"ongoing3"));
+        items.add(new OngoingDomain("E-Book App","June 13, 2023",80,"ongoing4"));
+        binding.viewOngoing.setLayoutManager(new GridLayoutManager(this,2));
+        adapterOngoing=new OngoingAdapter(items);
+        binding.viewOngoing.setAdapter(adapterOngoing);
     }
 }
