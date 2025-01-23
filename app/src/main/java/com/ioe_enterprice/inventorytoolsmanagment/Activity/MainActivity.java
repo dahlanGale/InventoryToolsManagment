@@ -1,16 +1,13 @@
-package com.ioe_enterprice.inventorytoolsmanagment;
+package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 
 import com.ioe_enterprice.inventorytoolsmanagment.Adapter.OngoingAdapter;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.OngoingDomain;
-import com.ioe_enterprice.inventorytoolsmanagment.R;
 import com.ioe_enterprice.inventorytoolsmanagment.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
@@ -22,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding=ActivityMainBinding.inflate(getLayoutInflater());
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         initRecyclerView();
