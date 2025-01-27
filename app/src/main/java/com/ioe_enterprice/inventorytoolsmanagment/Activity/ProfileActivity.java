@@ -9,7 +9,6 @@ import android.os.Bundle;
 import com.ioe_enterprice.inventorytoolsmanagment.Adapter.ArchiveAdapter;
 import com.ioe_enterprice.inventorytoolsmanagment.Adapter.MyTeamAdapter;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.TeamDomain;
-import com.ioe_enterprice.inventorytoolsmanagment.R;
 import com.ioe_enterprice.inventorytoolsmanagment.databinding.ActivityProfileBinding;
 
 import java.util.ArrayList;
