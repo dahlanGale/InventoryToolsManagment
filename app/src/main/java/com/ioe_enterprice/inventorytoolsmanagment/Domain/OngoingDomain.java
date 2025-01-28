@@ -6,19 +6,19 @@ public class OngoingDomain {
     private int progressPercent;
     private String picPath;
 
-    public OngoingDomain(String tittle, String date, int progressPercent, String picPath) {
-        this.title = title;
+    public OngoingDomain(String title, String date, int progressPercent, String picPath) {
+        this.title = title; // Asegúrate de que el parámetro y el campo coincidan
         this.date = date;
         this.progressPercent = progressPercent;
         this.picPath = picPath;
     }
 
-    public String getTittle() {
+    public String getTitle() { // Cambiar el nombre correctamente
         return title;
     }
 
-    public void setTittle(String tittle) {
-        this.title = tittle;
+    public void setTitle(String title) { // Cambiar el nombre correctamente
+        this.title = title;
     }
 
     public String getDate() {

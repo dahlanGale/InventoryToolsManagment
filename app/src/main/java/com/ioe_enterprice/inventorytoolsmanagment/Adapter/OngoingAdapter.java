@@ -40,7 +40,7 @@ public class OngoingAdapter extends RecyclerView.Adapter<OngoingAdapter.Viewhold
 
     @Override
     public void onBindViewHolder(@NonNull OngoingAdapter.Viewholder holder, int position) {
-        holder.tittle.setText(items.get(position).getTittle());
+        holder.tittle.setText(items.get(position).getTitle());
         holder.date.setText(items.get(position).getDate());
         holder.progressBarPercent.setText(items.get(position).getProgressPercent() + "%");
 

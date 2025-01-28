@@ -32,10 +32,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void initRecyclerView() {
         ArrayList<OngoingDomain> items=new ArrayList<>();
-        items.add(new OngoingDomain("Food App","June 12, 2023",50,"ongoing1"));
-        items.add(new OngoingDomain("AI Recoding","June 26, 2023",60,"ongoing2"));
-        items.add(new OngoingDomain("Weather App","July 22, 2023",25,"ongoing3"));
-        items.add(new OngoingDomain("E-Book App","June 13, 2023",80,"ongoing4"));
+        items.add(new OngoingDomain("CR-W/HMC","27/01/2025",50,"ongoing1"));
+        items.add(new OngoingDomain("$50","15/12/2025",100,"ongoing2"));
+        items.add(new OngoingDomain("Foto HC/HMC","10/08/2025",100,"ongoing3"));
+        items.add(new OngoingDomain("Prueba Insumos","03/02/2025",0,"ongoing4"));
         binding.viewOngoing.setLayoutManager(new GridLayoutManager(this,2));
         adapterOngoing=new OngoingAdapter(items);
         binding.viewOngoing.setAdapter(adapterOngoing);

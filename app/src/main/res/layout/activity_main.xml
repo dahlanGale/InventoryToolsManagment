@@ -20,7 +20,23 @@
                 android:text="Buenos días!"
                 android:textColor="@color/dark_blue"
                 android:textSize="18sp" />
-            <EditText android:id="@+id/editTextText" android:layout_width="match_parent" android:layout_height="55dp" android:layout_marginTop="16dp" android:layout_marginBottom="16dp" android:background="@drawable/edittext_background" android:drawableStart="@drawable/search" android:drawablePadding="16dp" android:ems="10" android:hint="Search..." android:inputType="text" android:padding="16dp" android:textColor="@color/dark_blue" android:textColorHint="@color/dark_blue" android:textSize="18sp"/>
+
+            <EditText
+                android:id="@+id/editTextText"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/edittext_background"
+                android:drawableStart="@drawable/search"
+                android:drawablePadding="16dp"
+                android:ems="10"
+                android:hint="Buscar..."
+                android:inputType="text"
+                android:padding="16dp"
+                android:textColor="@color/dark_blue"
+                android:textColorHint="@color/dark_blue"
+                android:textSize="18sp" />
             <androidx.constraintlayout.widget.ConstraintLayout android:layout_width="match_parent" android:layout_height="130dp" android:background="@drawable/banner_background">
                 <TextView android:id="@+id/textView3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_marginTop="16dp" android:text="Hola de nuevo!" android:textColor="@color/dark_blue" android:textSize="16sp" android:textStyle="bold" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent"/>
 
@@ -28,7 +44,7 @@
                     android:id="@+id/textView4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Revisemos tus \nproyectos"
+                    android:text="Revisemos tus \ninventarios"
                     android:textColor="@color/dark_blue"
                     android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -44,7 +60,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Proyectos activos"
+                    android:text="Inventarios recientes"
                     android:textColor="@color/dark_blue"
                     android:textSize="16sp"
                     android:textStyle="bold" />
