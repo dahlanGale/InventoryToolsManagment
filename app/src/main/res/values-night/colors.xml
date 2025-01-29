@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores para el modo oscuro -->
+    <color name="black">#FFFFFFFF</color> <!-- Fondo oscuro -->
+    <color name="white">#FF000000</color> <!-- Texto claro -->
+    <color name="dark_blue">#A8C5FF</color> <!-- Un azul más claro para modo oscuro -->
+    <color name="light_blue">#1A2A4A</color> <!-- Un azul más oscuro para modo oscuro -->
+</resources>
