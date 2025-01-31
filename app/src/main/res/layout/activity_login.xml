@@ -40,7 +40,7 @@
         app:layout_constraintStart_toStartOf="@+id/floatingActionButton"
         app:layout_constraintTop_toBottomOf="@+id/floatingActionButton" />
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
         style="@style/custom_card_view_style"
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -55,11 +55,11 @@
             android:layout_height="match_parent">
 
             <EditText
-                android:id="@+id/editTextText2"
+                android:id="@+id/et_user"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="32dp"
-                android:background="@color/edit_text_background"
+                android:background="@drawable/edit_text_background"
                 android:drawableLeft="@drawable/baseline_engineering_24"
                 android:drawablePadding="8dp"
                 android:drawableTint="@color/app_theme"
@@ -72,11 +72,11 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
             <EditText
-                android:id="@+id/editTextTextPassword"
+                android:id="@+id/et_Password"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="32dp"
-                android:background="@color/edit_text_background"
+                android:background="@drawable/edit_text_background"
                 android:drawableLeft="@drawable/baseline_lock_24"
                 android:drawablePadding="8dp"
                 android:drawableTint="@color/app_theme"
@@ -86,10 +86,25 @@
                 android:padding="8dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/editTextText2" />
+                app:layout_constraintTop_toBottomOf="@id/et_user" />
+
+            <!-- TextView para mostrar mensajes de error -->
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/holo_red_dark"
+                android:visibility="gone"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:text="Credenciales incorrectas"
+                app:layout_constraintTop_toBottomOf="@id/et_Password"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginHorizontal="16dp" />
 
             <Button
-                android:id="@+id/button"
+                android:id="@+id/btnLogin"
                 android:layout_width="0dp"
                 android:layout_height="60dp"
                 android:layout_marginStart="32dp"
@@ -100,10 +115,9 @@
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
+                app:layout_constraintTop_toBottomOf="@+id/et_Password" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 </androidx.constraintlayout.widget.ConstraintLayout>
-
