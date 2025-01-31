@@ -48,6 +48,8 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.8.10")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.10")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10")
+    implementation ("androidx.cardview:cardview:1.0.0'")
+
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

@@ -8,6 +8,9 @@
       <SelectionState runConfigName="Tests in 'com.ioe_enterprice.inventorytoolsmanagment.Activity'">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="Tests in ''">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>
