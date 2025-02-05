@@ -12,13 +12,21 @@ import android.widget.ImageView;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.OngoingDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.InventoryViewHolder> {
     private final List<OngoingDomain> inventoryList;
+    private List<OngoingDomain> filteredList;
 
     public InventariosAdapter(List<OngoingDomain> inventoryList) {
         this.inventoryList = inventoryList;
+        this.filteredList = new ArrayList<>(inventoryList.subList(0, Math.min(4, inventoryList.size())));
+    }
+
+    public void updateList(int limit) {
+        filteredList = new ArrayList<>(inventoryList.subList(0, Math.min(limit, inventoryList.size())));
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -30,8 +38,7 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull InventoryViewHolder holder, int position) {
-        OngoingDomain item = inventoryList.get(position);
-
+        OngoingDomain item = filteredList.get(position);
         holder.dateTxt.setText(item.getDate());
         holder.titleTxt.setText(item.getTitle());
         holder.progressTxt.setText("Progreso");
@@ -49,7 +56,7 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
 
     @Override
     public int getItemCount() {
-        return inventoryList.size();
+        return filteredList.size();
     }
 
     public static class InventoryViewHolder extends RecyclerView.ViewHolder {

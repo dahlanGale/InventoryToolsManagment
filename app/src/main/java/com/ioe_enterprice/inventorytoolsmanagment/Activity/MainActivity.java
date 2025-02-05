@@ -2,6 +2,8 @@ package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,6 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private InventariosAdapter adapter;
     private List<OngoingDomain> inventoryList;
+    private TextView tvShowMore;
+    private boolean isExpanded = false;
 
     // Datos de conexión a la base de datos
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
@@ -47,8 +51,16 @@ public class MainActivity extends AppCompatActivity {
         adapter = new InventariosAdapter(inventoryList);
         recyclerView.setAdapter(adapter);
 
+        tvShowMore = findViewById(R.id.tv_ShowMore);
+        tvShowMore.setOnClickListener(view -> toggleListSize());
         // Cargar los inventarios desde la base de datos
         loadActiveInventories();
+    }
+
+    private void toggleListSize() {
+        isExpanded = !isExpanded;
+        adapter.updateList(isExpanded ? 10 : 4);
+        tvShowMore.setText(isExpanded ? "Ver menos" : "Ver más");
     }
 
     private void loadActiveInventories() {
