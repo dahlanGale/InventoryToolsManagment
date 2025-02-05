@@ -1,7 +1,9 @@
 package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -16,23 +18,20 @@ import com.ioe_enterprice.inventorytoolsmanagment.R;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class MainActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private InventariosAdapter adapter;
-    private List<OngoingDomain> inventoryList;
-    private TextView tvShowMore;
-    private boolean isExpanded = false;
+    private List<OngoingDomain> inventoryList; // Lista completa de 10 registros
+    private List<OngoingDomain> displayedList; // Lista filtrada que se muestra en el RecyclerView
+    private boolean showAll = false; // Estado para alternar entre 4 y 10 registros
+    private TextView tvShowMore; // Botón "Ver más"
 
     // Datos de conexión a la base de datos
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
@@ -44,36 +43,37 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Configurar RecyclerView
         recyclerView = findViewById(R.id.viewOngoing);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         inventoryList = new ArrayList<>();
-        adapter = new InventariosAdapter(inventoryList);
+        displayedList = new ArrayList<>();
+        adapter = new InventariosAdapter(displayedList);
         recyclerView.setAdapter(adapter);
 
         tvShowMore = findViewById(R.id.tv_ShowMore);
-        tvShowMore.setOnClickListener(view -> toggleListSize());
-        // Cargar los inventarios desde la base de datos
-        loadActiveInventories();
-    }
+        tvShowMore.setOnClickListener(v -> toggleView());
 
-    private void toggleListSize() {
-        isExpanded = !isExpanded;
-        adapter.updateList(isExpanded ? 10 : 4);
-        tvShowMore.setText(isExpanded ? "Ver menos" : "Ver más");
+        loadActiveInventories();
+
+        LinearLayout profileBtn = findViewById(R.id.profileBtn);
+        profileBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void loadActiveInventories() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(() -> {
+        executor.execute(() -> {
+            List<OngoingDomain> tempList = new ArrayList<>();
             try {
-                // Conexión a la base de datos
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 Statement statement = connection.createStatement();
 
-                // Consulta SQL
-                String query = "SELECT " +
+                // Cargar los 10 registros desde la base de datos
+                String query = "SELECT TOP 10 " +
                         "cb.inventarioFolio, " +
                         "CONVERT(VARCHAR, cb.fechaInventario, 120) AS fechaInventario, " +
                         "CASE WHEN cb.tipoInventario = 'ARTICULO' THEN 'ongoing3' ELSE 'ongoing4' END AS picPath, " +
@@ -85,9 +85,8 @@ public class MainActivity extends AppCompatActivity {
 
                 ResultSet resultSet = statement.executeQuery(query);
 
-                // Procesar los resultados
                 while (resultSet.next()) {
-                    inventoryList.add(new OngoingDomain(
+                    tempList.add(new OngoingDomain(
                             resultSet.getString("inventarioFolio"),
                             resultSet.getString("fechaInventario"),
                             resultSet.getInt("progressPercent"),
@@ -95,29 +94,36 @@ public class MainActivity extends AppCompatActivity {
                     ));
                 }
 
-                // Actualizar el RecyclerView en el hilo principal
-                runOnUiThread(() -> adapter.notifyDataSetChanged());
-
-                // Cerrar recursos
                 resultSet.close();
                 statement.close();
                 connection.close();
-
             } catch (Exception e) {
                 Log.e("DB_ERROR", "Error al conectar a la base de datos", e);
             }
+
+            runOnUiThread(() -> {
+                inventoryList.clear();
+                inventoryList.addAll(tempList);
+                updateDisplayedList();
+            });
         });
 
-        try {
-            // Esperar máximo 5 segundos
-            future.get(5, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            Log.e("DB_ERROR", "Timeout al conectar a la base de datos", e);
-            future.cancel(true); // Cancelar la tarea si excede el tiempo
-        } catch (Exception e) {
-            Log.e("DB_ERROR", "Error en la ejecución", e);
-        } finally {
-            executor.shutdown();
+        executor.shutdown();
+    }
+
+    private void updateDisplayedList() {
+        displayedList.clear();
+        if (showAll) {
+            displayedList.addAll(inventoryList); // Mostrar los 10 registros
+        } else {
+            displayedList.addAll(inventoryList.subList(0, Math.min(4, inventoryList.size()))); // Mostrar solo 4
         }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void toggleView() {
+        showAll = !showAll;
+        updateDisplayedList();
+        tvShowMore.setText(showAll ? "Ver menos" : "Ver más");
     }
 }
