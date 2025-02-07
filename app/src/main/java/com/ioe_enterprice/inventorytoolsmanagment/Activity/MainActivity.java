@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,8 +31,8 @@ public class MainActivity extends AppCompatActivity {
     private InventariosAdapter adapter;
     private List<OngoingDomain> inventoryList; // Lista completa de 10 registros
     private List<OngoingDomain> displayedList; // Lista filtrada que se muestra en el RecyclerView
-    private boolean showAll = false; // Estado para alternar entre 4 y 10 registros
-    private TextView tvShowMore; // Botón "Ver más"
+    private TextView tvShowMore;
+    private boolean isExpanded = false;
 
     // Datos de conexión a la base de datos
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
@@ -43,17 +44,16 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Configurar RecyclerView
         recyclerView = findViewById(R.id.viewOngoing);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-
         inventoryList = new ArrayList<>();
-        displayedList = new ArrayList<>();
-        adapter = new InventariosAdapter(displayedList);
+        adapter = new InventariosAdapter(inventoryList);
         recyclerView.setAdapter(adapter);
 
         tvShowMore = findViewById(R.id.tv_ShowMore);
-        tvShowMore.setOnClickListener(v -> toggleView());
-
+        tvShowMore.setOnClickListener(view -> toggleListSize());
+        // Cargar los inventarios desde la base de datos
         loadActiveInventories();
 
         LinearLayout profileBtn = findViewById(R.id.profileBtn);
@@ -63,17 +63,23 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void toggleListSize() {
+        isExpanded = !isExpanded;
+        adapter.updateList(isExpanded ? 10 : 4);
+        tvShowMore.setText(isExpanded ? "Ver menos" : "Ver más");
+    }
+
     private void loadActiveInventories() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(() -> {
-            List<OngoingDomain> tempList = new ArrayList<>();
+        Future<?> future = executor.submit(() -> {
             try {
+                // Conexión a la base de datos
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 Statement statement = connection.createStatement();
 
-                // Cargar los 10 registros desde la base de datos
-                String query = "SELECT TOP 10 " +
+                // Carga los registros desde la base de datos
+                String query = "SELECT " +
                         "cb.inventarioFolio, " +
                         "CONVERT(VARCHAR, cb.fechaInventario, 120) AS fechaInventario, " +
                         "CASE WHEN cb.tipoInventario = 'ARTICULO' THEN 'ongoing3' ELSE 'ongoing4' END AS picPath, " +
@@ -86,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
                 ResultSet resultSet = statement.executeQuery(query);
 
                 while (resultSet.next()) {
-                    tempList.add(new OngoingDomain(
+                    inventoryList.add(new OngoingDomain(
                             resultSet.getString("inventarioFolio"),
                             resultSet.getString("fechaInventario"),
                             resultSet.getInt("progressPercent"),
@@ -100,30 +106,8 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.e("DB_ERROR", "Error al conectar a la base de datos", e);
             }
-
-            runOnUiThread(() -> {
-                inventoryList.clear();
-                inventoryList.addAll(tempList);
-                updateDisplayedList();
-            });
         });
-
         executor.shutdown();
     }
 
-    private void updateDisplayedList() {
-        displayedList.clear();
-        if (showAll) {
-            displayedList.addAll(inventoryList); // Mostrar los 10 registros
-        } else {
-            displayedList.addAll(inventoryList.subList(0, Math.min(4, inventoryList.size()))); // Mostrar solo 4
-        }
-        adapter.notifyDataSetChanged();
-    }
-
-    private void toggleView() {
-        showAll = !showAll;
-        updateDisplayedList();
-        tvShowMore.setText(showAll ? "Ver menos" : "Ver más");
-    }
 }
