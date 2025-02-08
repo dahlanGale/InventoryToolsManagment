@@ -2,7 +2,10 @@ package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -27,6 +30,7 @@ import java.util.concurrent.Future;
 
 public class MainActivity extends AppCompatActivity {
 
+    private EditText etBuscar;
     private RecyclerView recyclerView;
     private InventariosAdapter adapter;
     private List<OngoingDomain> inventoryList; // Lista completa de 10 registros
@@ -44,23 +48,30 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Configurar RecyclerView
         recyclerView = findViewById(R.id.viewOngoing);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         inventoryList = new ArrayList<>();
         adapter = new InventariosAdapter(inventoryList);
         recyclerView.setAdapter(adapter);
 
+        etBuscar = findViewById(R.id.et_Buscar);
+        etBuscar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.filter(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
         tvShowMore = findViewById(R.id.tv_ShowMore);
         tvShowMore.setOnClickListener(view -> toggleListSize());
-        // Cargar los inventarios desde la base de datos
-        loadActiveInventories();
 
-        LinearLayout profileBtn = findViewById(R.id.profileBtn);
-        profileBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-            startActivity(intent);
-        });
+        loadActiveInventories();
     }
 
     private void toggleListSize() {
@@ -87,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
                         "FROM cbInventarios cb " +
                         "LEFT JOIN dtInventariosArticulos dt ON cb.inventarioDocID = dt.inventarioDocID " +
                         "WHERE cb.estatus = 'ABIERTO' " +
-                        "GROUP BY cb.inventarioFolio, cb.fechaInventario, cb.tipoInventario";
+                        "GROUP BY cb.fechaInventario, cb.tipoInventario";
 
                 ResultSet resultSet = statement.executeQuery(query);
 
@@ -109,5 +120,4 @@ public class MainActivity extends AppCompatActivity {
         });
         executor.shutdown();
     }
-
 }
