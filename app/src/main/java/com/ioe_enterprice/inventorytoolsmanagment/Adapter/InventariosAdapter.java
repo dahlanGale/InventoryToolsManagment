@@ -21,7 +21,7 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
 
     public InventariosAdapter(List<OngoingDomain> inventoryList) {
         this.inventoryList = inventoryList;
-        this.filteredList = new ArrayList<>(inventoryList.subList(0, Math.min(4, inventoryList.size())));
+        this.filteredList = new ArrayList<>(); // Inicialmente vacía
     }
 
     // Método para actualizar la lista con un límite de elementos
@@ -48,6 +48,13 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
         notifyDataSetChanged();
     }
 
+    // ✅ Nuevo método para actualizar la lista cuando `inventoryList` cambie
+    public void updateFullList() {
+        filteredList.clear();
+        filteredList.addAll(inventoryList.subList(0, Math.min(4, inventoryList.size())));
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public InventoryViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -66,11 +73,7 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
 
         int imageResId = holder.itemView.getContext().getResources().getIdentifier(
                 item.getPicPath(), "drawable", holder.itemView.getContext().getPackageName());
-        if (imageResId != 0) {
-            holder.pic.setImageResource(imageResId);
-        } else {
-            holder.pic.setImageResource(R.drawable.ongoing1);
-        }
+        holder.pic.setImageResource(imageResId != 0 ? imageResId : R.drawable.ongoing1);
     }
 
     @Override

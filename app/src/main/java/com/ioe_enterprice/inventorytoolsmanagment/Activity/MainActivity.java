@@ -72,17 +72,25 @@ public class MainActivity extends AppCompatActivity {
         tvShowMore.setOnClickListener(view -> toggleListSize());
 
         loadActiveInventories();
+
+        LinearLayout profileBtn = findViewById(R.id.profileBtn);
+        profileBtn.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
+            startActivity(intent);
+        });
     }
 
     private void toggleListSize() {
         isExpanded = !isExpanded;
-        adapter.updateList(isExpanded ? 10 : 4);
+        int limit = isExpanded ? 10 : 4; // Determina si se muestran 4 o 10 elementos
+        adapter.updateList(limit); // Llama a `updateList(int limit)` en el adapter
+
         tvShowMore.setText(isExpanded ? "Ver menos" : "Ver más");
     }
 
     private void loadActiveInventories() {
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        Future<?> future = executor.submit(() -> {
+        executor.submit(() -> {
             try {
                 // Conexión a la base de datos
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
@@ -98,12 +106,13 @@ public class MainActivity extends AppCompatActivity {
                         "FROM cbInventarios cb " +
                         "LEFT JOIN dtInventariosArticulos dt ON cb.inventarioDocID = dt.inventarioDocID " +
                         "WHERE cb.estatus = 'ABIERTO' " +
-                        "GROUP BY cb.fechaInventario, cb.tipoInventario";
+                        "GROUP BY cb.inventarioFolio, cb.fechaInventario, cb.tipoInventario";
 
                 ResultSet resultSet = statement.executeQuery(query);
+                List<OngoingDomain> tempList = new ArrayList<>();
 
                 while (resultSet.next()) {
-                    inventoryList.add(new OngoingDomain(
+                    tempList.add(new OngoingDomain(
                             resultSet.getString("inventarioFolio"),
                             resultSet.getString("fechaInventario"),
                             resultSet.getInt("progressPercent"),
@@ -114,6 +123,14 @@ public class MainActivity extends AppCompatActivity {
                 resultSet.close();
                 statement.close();
                 connection.close();
+
+                // Actualizar UI en el hilo principal
+                runOnUiThread(() -> {
+                    inventoryList.clear();
+                    inventoryList.addAll(tempList);
+                    adapter.updateFullList(); // ✅ Mostrar automáticamente los primeros 4 elementos
+                });
+
             } catch (Exception e) {
                 Log.e("DB_ERROR", "Error al conectar a la base de datos", e);
             }
