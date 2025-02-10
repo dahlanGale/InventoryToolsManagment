@@ -1,5 +1,6 @@
 package com.ioe_enterprice.inventorytoolsmanagment.Adapter;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.ProgressBar;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.ioe_enterprice.inventorytoolsmanagment.Activity.ConteoActivity;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.OngoingDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
 
@@ -77,12 +79,18 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
         holder.progressBar.setProgress(item.getProgressPercent());
         holder.percentTxt.setText(item.getProgressPercent() + "%");
 
-        Glide.with(holder.itemView.getContext())
-                .load(holder.itemView.getContext().getResources().getIdentifier(
-                        item.getPicPath(), "drawable", holder.itemView.getContext().getPackageName()))
-                .error(R.drawable.ongoing1) // Imagen por defecto si no encuentra la imagen
-                .into(holder.pic);
+        int imageResId = holder.itemView.getContext().getResources().getIdentifier(
+                item.getPicPath(), "drawable", holder.itemView.getContext().getPackageName());
+        holder.pic.setImageResource(imageResId != 0 ? imageResId : R.drawable.ongoing1);
+
+        // Agregar evento de clic para abrir ConteoActivity
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(holder.itemView.getContext(), ConteoActivity.class);
+            intent.putExtra("INVENTARIO_FOLIO", item.getTitle()); // Pasar el folio del inventario
+            holder.itemView.getContext().startActivity(intent);
+        });
     }
+
 
     @Override
     public int getItemCount() {

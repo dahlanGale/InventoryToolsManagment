@@ -2,6 +2,7 @@ package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,18 +34,19 @@ public class ConteoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conteo);
 
-        recyclerView = findViewById(R.id.recyclerConteo);
+        TextView tvInventarioFolio = findViewById(R.id.tvInventarioFolio);
+        RecyclerView recyclerView = findViewById(R.id.recyclerConteo);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        articuloList = new ArrayList<>();
-        adapter = new ConteoAdapter(articuloList, this);
-        recyclerView.setAdapter(adapter);
 
         String inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
-
         if (inventarioFolio != null) {
+            tvInventarioFolio.setText("Inventario: " + inventarioFolio);
             loadInventarioDetalles(inventarioFolio);
+        } else {
+            Log.e("ConteoActivity", "Error: No se recibió INVENTARIO_FOLIO");
         }
     }
+
 
     private void loadInventarioDetalles(String inventarioFolio) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
