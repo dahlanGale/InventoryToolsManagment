@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.widget.ProgressBar;
 import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.OngoingDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
 
@@ -17,18 +18,23 @@ import java.util.List;
 
 public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.InventoryViewHolder> {
     private final List<OngoingDomain> inventoryList; // Lista completa
-    private List<OngoingDomain> filteredList; // Lista mostrada en RecyclerView
+    private final List<OngoingDomain> filteredList; // Lista mostrada en RecyclerView
 
     public InventariosAdapter(List<OngoingDomain> inventoryList) {
         this.inventoryList = inventoryList;
         this.filteredList = new ArrayList<>(); // Inicialmente vacía
     }
 
-    // Método para actualizar la lista con un límite de elementos
     public void updateList(int limit) {
+        int oldSize = filteredList.size();
         filteredList.clear();
         filteredList.addAll(inventoryList.subList(0, Math.min(limit, inventoryList.size())));
-        notifyDataSetChanged();
+
+        if (filteredList.size() > oldSize) {
+            notifyItemRangeInserted(oldSize, filteredList.size() - oldSize);
+        } else {
+            notifyDataSetChanged();
+        }
     }
 
     // Método para filtrar los elementos según el texto ingresado en etBuscar
@@ -71,9 +77,11 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
         holder.progressBar.setProgress(item.getProgressPercent());
         holder.percentTxt.setText(item.getProgressPercent() + "%");
 
-        int imageResId = holder.itemView.getContext().getResources().getIdentifier(
-                item.getPicPath(), "drawable", holder.itemView.getContext().getPackageName());
-        holder.pic.setImageResource(imageResId != 0 ? imageResId : R.drawable.ongoing1);
+        Glide.with(holder.itemView.getContext())
+                .load(holder.itemView.getContext().getResources().getIdentifier(
+                        item.getPicPath(), "drawable", holder.itemView.getContext().getPackageName()))
+                .error(R.drawable.ongoing1) // Imagen por defecto si no encuentra la imagen
+                .into(holder.pic);
     }
 
     @Override
