@@ -34,19 +34,22 @@ public class ConteoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conteo);
 
-        TextView tvInventarioFolio = findViewById(R.id.tvInventarioFolio);
+        // 📌 Asegúrate de inicializar `articuloList` antes de usarla
+        articuloList = new ArrayList<>();
+
         RecyclerView recyclerView = findViewById(R.id.recyclerConteo);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        adapter = new ConteoAdapter(articuloList, this);
+        recyclerView.setAdapter(adapter);
+
         String inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
         if (inventarioFolio != null) {
-            tvInventarioFolio.setText("Inventario: " + inventarioFolio);
             loadInventarioDetalles(inventarioFolio);
         } else {
             Log.e("ConteoActivity", "Error: No se recibió INVENTARIO_FOLIO");
         }
     }
-
 
     private void loadInventarioDetalles(String inventarioFolio) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -55,7 +58,7 @@ public class ConteoActivity extends AppCompatActivity {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 PreparedStatement statement = connection.prepareStatement(
-                        "SELECT SKU, UPC, descripcionCorta, ctdContada, ctdAjustada, costo, costoTotal " +
+                        "SELECT SKU, UPC, descripcionCorta, ctdContada " +
                                 "FROM dtInventariosArticulos WHERE inventarioDocID = " +
                                 "(SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?)");
                 statement.setString(1, inventarioFolio);
@@ -77,9 +80,13 @@ public class ConteoActivity extends AppCompatActivity {
                 connection.close();
 
                 runOnUiThread(() -> {
-                    articuloList.clear();
-                    articuloList.addAll(tempList);
-                    adapter.notifyDataSetChanged();
+                    if (articuloList != null) { // 🔹 Evita error si `articuloList` es null
+                        articuloList.clear();
+                        articuloList.addAll(tempList);
+                        adapter.notifyDataSetChanged();
+                    } else {
+                        Log.e("ConteoActivity", "articuloList es null antes de actualizar la UI.");
+                    }
                 });
 
             } catch (Exception e) {
