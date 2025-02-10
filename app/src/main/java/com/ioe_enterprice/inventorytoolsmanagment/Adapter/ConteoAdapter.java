@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.ArticuloDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
+import com.ioe_enterprice.inventorytoolsmanagment.Utils.SessionManager;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -50,9 +52,18 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         holder.skuTxt.setText("SKU: " + item.getSKU());
         holder.descripcionTxt.setText(item.getDescripcion());
         holder.ctdContadaEdit.setText(String.valueOf(item.getCtdContada()));
+        holder.stockTotalTxt.setText("Stock: " + item.getStockTotal());
 
-        // 📌 Agregar TextWatcher para detectar cambios en "ctdContada"
-        holder.ctdContadaEdit.addTextChangedListener(new TextWatcher() {
+        // Variable para evitar doble actualización
+        final boolean[] isUpdating = {false};
+
+        // Elimina cualquier TextWatcher previo para evitar duplicados
+        if (holder.ctdContadaEdit.getTag() instanceof TextWatcher) {
+            holder.ctdContadaEdit.removeTextChangedListener((TextWatcher) holder.ctdContadaEdit.getTag());
+        }
+
+        //TextWatcher para detectar cambios manuales en el EditText
+        TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
@@ -61,12 +72,29 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
             @Override
             public void afterTextChanged(Editable s) {
-                String newText = s.toString();
-                if (!newText.isEmpty()) {
-                    double nuevaCantidad = Double.parseDouble(newText);
-                    item.setCtdContada(nuevaCantidad);
-                    updateCtdContadaEnBD(item.getSKU(), nuevaCantidad);
+                if (!isUpdating[0] && !s.toString().isEmpty()) {  // Evita actualizar cuando el botón cambia el valor
+                    double nuevaCantidad = Double.parseDouble(s.toString());
+                    if (item.getCtdContada() != nuevaCantidad) {  // Evita llamadas innecesarias
+                        item.setCtdContada(nuevaCantidad);
+                        updateCtdContadaEnBD(item.getInventariosArtID(), nuevaCantidad);
+                    }
                 }
+            }
+        };
+
+        // Agregar el TextWatcher y guardarlo en el tag
+        holder.ctdContadaEdit.addTextChangedListener(watcher);
+        holder.ctdContadaEdit.setTag(watcher);
+
+        // Botón para fijar el stock total
+        holder.btnSetStock.setOnClickListener(v -> {
+            double stockTotal = item.getStockTotal();
+            if (item.getCtdContada() != stockTotal) {
+                isUpdating[0] = true; // 🔹 Desactiva temporalmente el TextWatcher
+                holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
+                item.setCtdContada(stockTotal);
+                updateCtdContadaEnBD(item.getInventariosArtID(), stockTotal);
+                isUpdating[0] = false; // 🔹 Reactiva el TextWatcher
             }
         });
     }
@@ -77,32 +105,47 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     }
 
     public static class ConteoViewHolder extends RecyclerView.ViewHolder {
-        TextView skuTxt, descripcionTxt;
+        TextView skuTxt, descripcionTxt, stockTotalTxt;
         EditText ctdContadaEdit;
+        Button btnSetStock;
 
         public ConteoViewHolder(@NonNull View itemView) {
             super(itemView);
             skuTxt = itemView.findViewById(R.id.skuTxt);
             descripcionTxt = itemView.findViewById(R.id.descripcionTxt);
+            stockTotalTxt = itemView.findViewById(R.id.stockTotalTxt);
             ctdContadaEdit = itemView.findViewById(R.id.ctdContadaEdit);
+            btnSetStock = itemView.findViewById(R.id.btnSetStock);
         }
     }
 
-    // Método para actualizar la base de datos en segundo plano
-    private void updateCtdContadaEnBD(int sku, double nuevaCantidad) {
+    // 🔹 Método para actualizar la cantidad contada y la fecha en la base de datos
+    private void updateCtdContadaEnBD(int inventariosArtID, double nuevaCantidad) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
             try {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+                // Obtener usuarioID desde caché
+                SessionManager sessionManager = new SessionManager(context);
+                int usuarioID = sessionManager.getUserID();
+
+                //Consulta SQL para actualizar ctdContada, usuarioID y fechaConteo
                 PreparedStatement statement = connection.prepareStatement(
-                        "UPDATE dtInventariosArticulos SET ctdContada = ? WHERE SKU = ?");
+                        "UPDATE dtInventariosArticulos " +
+                                "SET ctdContada = ?, usuarioID = ?, fechaConteo = CURRENT_TIMESTAMP " +
+                                "WHERE inventariosArtID = ?");
                 statement.setDouble(1, nuevaCantidad);
-                statement.setInt(2, sku);
-                statement.executeUpdate();
+                statement.setInt(2, usuarioID);
+                statement.setInt(3, inventariosArtID);
+
+                int rowsUpdated = statement.executeUpdate();
                 statement.close();
                 connection.close();
-                Log.d("DB_UPDATE", "Cantidad actualizada para SKU: " + sku);
+
+                Log.d("DB_UPDATE", "Cantidad actualizada para inventariosArtID: " + inventariosArtID +
+                        ", Filas afectadas: " + rowsUpdated + ", Fecha: NOW()");
             } catch (Exception e) {
                 Log.e("DB_ERROR", "Error al actualizar ctdContada", e);
             }

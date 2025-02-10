@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.ioe_enterprice.inventorytoolsmanagment.R;
+import com.ioe_enterprice.inventorytoolsmanagment.Utils.SessionManager;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -84,6 +85,11 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Verificar si se encontró un usuario con las credenciales proporcionadas
                 if (resultSet.next()) {
+                    int usuarioID = resultSet.getInt("usuarioID"); //Guarda el usuario en el caché
+
+                    SessionManager sessionManager = new SessionManager(LoginActivity.this);
+                    sessionManager.saveUserID(usuarioID);
+
                     // Si las credenciales son válidas, redirigir a la actividad principal
                     runOnUiThread(() -> {
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);

@@ -58,7 +58,7 @@ public class ConteoActivity extends AppCompatActivity {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 PreparedStatement statement = connection.prepareStatement(
-                        "SELECT SKU, UPC, descripcionCorta, ctdContada " +
+                        "SELECT inventariosArtID, SKU, UPC, descripcionCorta, ctdContada, stockTotal, ubicacionID, usuarioID " +
                                 "FROM dtInventariosArticulos WHERE inventarioDocID = " +
                                 "(SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?)");
                 statement.setString(1, inventarioFolio);
@@ -68,10 +68,14 @@ public class ConteoActivity extends AppCompatActivity {
 
                 while (resultSet.next()) {
                     tempList.add(new ArticuloDomain(
+                            resultSet.getInt("inventariosArtID"),
                             resultSet.getInt("SKU"),
                             resultSet.getLong("UPC"),
                             resultSet.getString("descripcionCorta"),
-                            resultSet.getDouble("ctdContada")
+                            resultSet.getDouble("ctdContada"),
+                            resultSet.getDouble("stockTotal"),
+                            resultSet.getInt("ubicacionID"),
+                            resultSet.getInt("usuarioID")
                     ));
                 }
 
@@ -80,13 +84,9 @@ public class ConteoActivity extends AppCompatActivity {
                 connection.close();
 
                 runOnUiThread(() -> {
-                    if (articuloList != null) { // 🔹 Evita error si `articuloList` es null
-                        articuloList.clear();
-                        articuloList.addAll(tempList);
-                        adapter.notifyDataSetChanged();
-                    } else {
-                        Log.e("ConteoActivity", "articuloList es null antes de actualizar la UI.");
-                    }
+                    articuloList.clear();
+                    articuloList.addAll(tempList);
+                    adapter.notifyDataSetChanged();
                 });
 
             } catch (Exception e) {
