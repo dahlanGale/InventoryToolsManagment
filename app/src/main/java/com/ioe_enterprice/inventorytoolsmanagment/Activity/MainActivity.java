@@ -33,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private InventariosAdapter adapter;
     private List<OngoingDomain> inventoryList; // Lista completa de 10 registros
-    private List<OngoingDomain> displayedList; // Lista filtrada que se muestra en el RecyclerView
     private TextView tvShowMore;
     private boolean isExpanded = false;
 
