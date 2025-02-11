@@ -50,6 +50,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     public void onBindViewHolder(@NonNull ConteoViewHolder holder, int position) {
         ArticuloDomain item = articuloList.get(position);
         holder.skuTxt.setText("SKU: " + item.getSKU());
+        holder.almacenTxt.setText("Almacén: " + item.getAlmacenDescripcion());
         holder.descripcionTxt.setText(item.getDescripcion());
         holder.ctdContadaEdit.setText(String.valueOf(item.getCtdContada()));
         holder.stockTotalTxt.setText("Stock: " + item.getStockTotal());
@@ -105,7 +106,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     }
 
     public static class ConteoViewHolder extends RecyclerView.ViewHolder {
-        TextView skuTxt, descripcionTxt, stockTotalTxt;
+        TextView skuTxt, descripcionTxt, stockTotalTxt, almacenTxt;
         EditText ctdContadaEdit;
         Button btnSetStock;
 

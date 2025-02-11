@@ -60,9 +60,13 @@ public class ConteoActivity extends AppCompatActivity {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 PreparedStatement statement = connection.prepareStatement(
-                        "SELECT inventariosArtID, SKU, UPC, descripcionCorta, ctdContada, stockTotal, ubicacionID, usuarioID " +
-                                "FROM dtInventariosArticulos WHERE inventarioDocID = " +
-                                "(SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?)");
+                        "SELECT ia.inventariosArtID, ia.SKU, ia.UPC, ia.descripcionCorta, ia.ctdContada, ia.stockTotal, " +
+                                "ia.ubicacionID, ia.usuarioID, " +
+                                "ISNULL(a.almacenDescripcion, 'Sin Almacén') AS almacenDescripcion " + // 🔹 Si no hay almacén, poner 'Sin Almacén'
+                                "FROM dtInventariosArticulos ia " +
+                                "LEFT JOIN dtProductosUbicacion pu ON ia.ubicacionID = pu.productosUbicacionID " +
+                                "LEFT JOIN tbAlmacenes a ON pu.almacenID = a.almacenID " +
+                                "WHERE ia.inventarioDocID = (SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?)");
                 statement.setString(1, inventarioFolio);
 
                 ResultSet resultSet = statement.executeQuery();
@@ -77,7 +81,8 @@ public class ConteoActivity extends AppCompatActivity {
                             resultSet.getDouble("ctdContada"),
                             resultSet.getDouble("stockTotal"),
                             resultSet.getInt("ubicacionID"),
-                            resultSet.getInt("usuarioID")
+                            resultSet.getInt("usuarioID"),
+                            resultSet.getString("almacenDescripcion")  // 🔹 Se agrega el nombre del almacén
                     ));
                 }
 

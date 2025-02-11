@@ -9,8 +9,9 @@ public class ArticuloDomain {
     private double stockTotal;
     private int ubicacionID;
     private int usuarioID;
+    private String almacenDescripcion;
 
-    public ArticuloDomain(int inventariosArtID, int SKU, long UPC, String descripcion, double ctdContada, double stockTotal, int ubicacionID, int usuarioID) {
+    public ArticuloDomain(int inventariosArtID, int SKU, long UPC, String descripcion, double ctdContada, double stockTotal, int ubicacionID, int usuarioID, String almacenDescripcion) {
         this.inventariosArtID = inventariosArtID;
         this.SKU = SKU;
         this.UPC = UPC;
@@ -19,6 +20,7 @@ public class ArticuloDomain {
         this.stockTotal = stockTotal;
         this.ubicacionID = ubicacionID;
         this.usuarioID = usuarioID;
+        this.almacenDescripcion = almacenDescripcion;
     }
 
     public int getInventariosArtID() { return inventariosArtID; }
@@ -29,6 +31,7 @@ public class ArticuloDomain {
     public double getStockTotal() { return stockTotal; }
     public int getUbicacionID() { return ubicacionID; }
     public int getUsuarioID() { return usuarioID; }
+    public String getAlmacenDescripcion() {return  almacenDescripcion; }
 
     public void setCtdContada(double ctdContada) { this.ctdContada = ctdContada; }
 }
