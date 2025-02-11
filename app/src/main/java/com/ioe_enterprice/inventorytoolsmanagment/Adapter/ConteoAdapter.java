@@ -49,6 +49,13 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     @Override
     public void onBindViewHolder(@NonNull ConteoViewHolder holder, int position) {
         ArticuloDomain item = articuloList.get(position);
+        Log.d("ConteoAdapter", "skuTxt: " + holder.skuTxt);
+        Log.d("ConteoAdapter", "almacenTxt: " + holder.almacenTxt);
+        Log.d("ConteoAdapter", "descripcionTxt: " + holder.descripcionTxt);
+        Log.d("ConteoAdapter", "stockTotalTxt: " + holder.stockTotalTxt);
+        Log.d("ConteoAdapter", "ctdContadaEdit: " + holder.ctdContadaEdit);
+        Log.d("ConteoAdapter", "btnSetStock: " + holder.btnSetStock);
+
         holder.skuTxt.setText("Sku: " + item.getSKU());
         holder.almacenTxt.setText("Almacén: " + item.getAlmacenDescripcion());
         holder.descripcionTxt.setText(item.getDescripcion());
@@ -106,13 +113,14 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     }
 
     public static class ConteoViewHolder extends RecyclerView.ViewHolder {
-        TextView skuTxt, descripcionTxt, stockTotalTxt, almacenTxt;
+        TextView skuTxt, almacenTxt, descripcionTxt, stockTotalTxt;
         EditText ctdContadaEdit;
         Button btnSetStock;
 
         public ConteoViewHolder(@NonNull View itemView) {
             super(itemView);
             skuTxt = itemView.findViewById(R.id.skuTxt);
+            almacenTxt = itemView.findViewById(R.id.almacenTxt); // Debe devolver el TextView correcto
             descripcionTxt = itemView.findViewById(R.id.descripcionTxt);
             stockTotalTxt = itemView.findViewById(R.id.stockTotalTxt);
             ctdContadaEdit = itemView.findViewById(R.id.ctdContadaEdit);
