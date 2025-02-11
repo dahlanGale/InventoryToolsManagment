@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     inventoryList.clear();
                     inventoryList.addAll(tempList);
-                    adapter.updateFullList(); // ✅ Mostrar automáticamente los primeros 4 elementos
+                    adapter.updateFullList(); // Mostrar automáticamente los primeros 4 elementos
                 });
 
             } catch (Exception e) {
@@ -135,4 +135,11 @@ public class MainActivity extends AppCompatActivity {
         });
         executor.shutdown();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadActiveInventories();  // Recarga los inventarios al volver a MainActivity
+    }
+
 }

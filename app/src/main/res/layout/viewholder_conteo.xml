@@ -2,41 +2,51 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/descripcionTxt"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/light_background"
-    android:padding="8dp">
+    android:layout_height="100dp"
+    android:layout_margin="8dp"
+    android:background="@drawable/light_background">
 
     <!-- SKU -->
     <TextView
         android:id="@+id/skuTxt"
-        android:layout_width="60dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SKU"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="SKU: 900002849"
+        android:textColor="@color/dark_blue"
         android:textSize="14sp"
+
         android:textStyle="bold"
+        app:layout_constraintHorizontal_weight="2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Descripción -->
+    <!-- Almacén -->
     <TextView
-        android:id="@+id/descripcionTxt"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:text="Descripción"
+        android:id="@+id/almacenTxt"
+        android:layout_width="160dp"
+        android:layout_height="16dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Almacen: Piso de Venta"
+        android:textColor="@color/black"
         android:textSize="14sp"
-        app:layout_constraintEnd_toStartOf="@+id/stockTotalTxt"
+        android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@+id/skuTxt"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Stock Total -->
+    <!-- Stock Total (Ahora está en la parte superior, más compacto) -->
     <TextView
         android:id="@+id/stockTotalTxt"
-        android:layout_width="wrap_content"
+        android:layout_width="80dp"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:text="Stock: 0"
+        android:gravity="center"
+        android:text="Stock: 9999"
         android:textColor="@color/dark_blue"
         android:textSize="14sp"
         android:textStyle="bold"
@@ -44,27 +54,45 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Cantidad Contada (Editable) -->
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:text="Descripción del producto"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/ctdContadaEdit"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/skuTxt" />
+
     <EditText
         android:id="@+id/ctdContadaEdit"
         android:layout_width="80dp"
         android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:hint="0.0"
         android:inputType="numberDecimal"
         android:textSize="14sp"
-        app:layout_constraintStart_toStartOf="@+id/skuTxt"
-        app:layout_constraintTop_toBottomOf="@+id/skuTxt" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnSetStock" />
 
-    <!-- Botón para fijar cantidad de stock -->
+    <!-- Botón para fijar cantidad de stock (ahora en la esquina inferior derecha) -->
     <Button
         android:id="@+id/btnSetStock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         android:padding="4dp"
         android:text="Fijar"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stockTotalTxt" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

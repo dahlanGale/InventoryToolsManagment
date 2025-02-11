@@ -1,5 +1,7 @@
 package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -95,4 +97,12 @@ public class ConteoActivity extends AppCompatActivity {
         });
         executor.shutdown();
     }
+
+    @Override
+    public void onBackPressed() {
+        Intent resultIntent = new Intent();
+        setResult(Activity.RESULT_OK, resultIntent); // 🔹 Indica que hay datos actualizados
+        finish(); // Cierra la actividad y regresa al MainActivity
+    }
+
 }
