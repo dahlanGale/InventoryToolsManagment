@@ -15,6 +15,24 @@
         android:textStyle="bold"
         android:paddingBottom="8dp"/>
 
+    <!-- Barra de búsqueda -->
+    <EditText
+        android:id="@+id/et_Buscar"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/edittext_background"
+        android:drawableStart="@drawable/search"
+        android:drawablePadding="16dp"
+        android:ems="10"
+        android:hint="Buscar..."
+        android:inputType="text"
+        android:padding="16dp"
+        android:textColor="@color/dark_blue"
+        android:textColorHint="@color/dark_blue"
+        android:textSize="18sp" />
+
     <!-- Lista de artículos -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerConteo"

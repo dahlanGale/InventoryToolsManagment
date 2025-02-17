@@ -98,11 +98,11 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         holder.btnSetStock.setOnClickListener(v -> {
             double stockTotal = item.getStockTotal();
             if (item.getCtdContada() != stockTotal) {
-                isUpdating[0] = true; // 🔹 Desactiva temporalmente el TextWatcher
+                isUpdating[0] = true; //Desactiva temporalmente el TextWatcher
                 holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
                 item.setCtdContada(stockTotal);
                 updateCtdContadaEnBD(item.getInventariosArtID(), stockTotal);
-                isUpdating[0] = false; // 🔹 Reactiva el TextWatcher
+                isUpdating[0] = false; //Reactiva el TextWatcher
             }
         });
     }

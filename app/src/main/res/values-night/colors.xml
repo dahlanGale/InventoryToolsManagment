@@ -5,4 +5,11 @@
     <color name="white">#FF000000</color> <!-- Texto claro -->
     <color name="dark_blue">#A8C5FF</color> <!-- Un azul más claro para modo oscuro -->
     <color name="light_blue">#1A2A4A</color> <!-- Un azul más oscuro para modo oscuro -->
+
+    <color name="edit_text_background">#1A2A4A</color>
+    <color name="edit_text_border">#03A9F4</color>
+    <color name="app_theme">#11366A</color>
+    <color name="app_theme_tint">#f6fbff</color>
+    <color name="app_theme_light">#f6fbff</color>
+
 </resources>
