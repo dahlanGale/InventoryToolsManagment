@@ -8,10 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Filter;
-import android.widget.TextView;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.Filterable;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,15 +29,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoViewHolder> implements Filterable {
-    private List<ArticuloDomain> articuloList;
-    private Context context;
-
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
     private static final String DB_USER = "IOEMaster";
     private static final String DB_PASSWORD = "Master.2024";
+    private List<ArticuloDomain> articuloList; // Lista principal (todos los datos)
+    private List<ArticuloDomain> articuloListFiltrada; // Lista temporal para mostrar resultados filtrados
+    private Context context;
 
     public ConteoAdapter(List<ArticuloDomain> articuloList, Context context) {
         this.articuloList = articuloList;
+        this.articuloListFiltrada = new ArrayList<>(articuloList); // Inicialmente igual a la lista principal
         this.context = context;
     }
 
@@ -50,35 +51,30 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
     @Override
     public void onBindViewHolder(@NonNull ConteoViewHolder holder, int position) {
-        ArticuloDomain item = articuloList.get(position);
-
+        ArticuloDomain item = articuloListFiltrada.get(position); // Usar la lista filtrada para mostrar
         holder.skuTxt.setText("Sku: " + item.getSKU());
         holder.almacenTxt.setText("Almacén: " + item.getAlmacenDescripcion());
         holder.descripcionTxt.setText(item.getDescripcion());
         holder.ctdContadaEdit.setText(String.valueOf(item.getCtdContada()));
         holder.stockTotalTxt.setText("Stock: " + item.getStockTotal());
 
-        // Variable para evitar doble actualización
-        final boolean[] isUpdating = {false};
-
-        // Elimina cualquier TextWatcher previo para evitar duplicados
+        // TextWatcher para detectar cambios en la cantidad contada
         if (holder.ctdContadaEdit.getTag() instanceof TextWatcher) {
             holder.ctdContadaEdit.removeTextChangedListener((TextWatcher) holder.ctdContadaEdit.getTag());
         }
 
-        // TextWatcher para detectar cambios manuales en el EditText
         TextWatcher watcher = new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (!isUpdating[0] && !s.toString().isEmpty()) {  // Evita actualizar cuando el botón cambia el valor
+                if (!s.toString().isEmpty()) {
                     double nuevaCantidad = Double.parseDouble(s.toString());
-                    if (item.getCtdContada() != nuevaCantidad) {  // Evita llamadas innecesarias
+                    if (item.getCtdContada() != nuevaCantidad) {
                         item.setCtdContada(nuevaCantidad);
                         updateCtdContadaEnBD(item.getInventariosArtID(), nuevaCantidad);
                     }
@@ -86,43 +82,35 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
             }
         };
 
-        // Agregar el TextWatcher y guardarlo en el tag
         holder.ctdContadaEdit.addTextChangedListener(watcher);
         holder.ctdContadaEdit.setTag(watcher);
 
         // Botón para fijar el stock total
         holder.btnSetStock.setOnClickListener(v -> {
             double stockTotal = item.getStockTotal();
-            if (item.getCtdContada() != stockTotal) {
-                isUpdating[0] = true; // Desactiva temporalmente el TextWatcher
-                holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
-                item.setCtdContada(stockTotal);
-                updateCtdContadaEnBD(item.getInventariosArtID(), stockTotal);
-                isUpdating[0] = false; // Reactiva el TextWatcher
-            }
+            holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
+            item.setCtdContada(stockTotal);
+            updateCtdContadaEnBD(item.getInventariosArtID(), stockTotal);
         });
     }
 
     @Override
     public int getItemCount() {
-        return articuloList.size();
+        return articuloListFiltrada.size(); // Tamaño de la lista filtrada
     }
 
-    // Método para filtrar la lista dentro del RecyclerView
     @Override
     public Filter getFilter() {
         return new Filter() {
             @Override
             protected FilterResults performFiltering(CharSequence constraint) {
                 FilterResults results = new FilterResults();
+                List<ArticuloDomain> listaFiltrada = new ArrayList<>();
 
                 if (constraint == null || constraint.length() == 0) {
-                    // 🔹 Si no hay texto, se devuelve la lista original
-                    results.values = articuloList;
+                    listaFiltrada.addAll(articuloList); // Restaurar todos los elementos
                 } else {
                     String filtroPatron = constraint.toString().toLowerCase().trim();
-                    List<ArticuloDomain> listaFiltrada = new ArrayList<>();
-
                     for (ArticuloDomain articulo : articuloList) {
                         if (articulo.getDescripcion().toLowerCase().contains(filtroPatron) ||
                                 String.valueOf(articulo.getSKU()).contains(filtroPatron) ||
@@ -130,22 +118,32 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                             listaFiltrada.add(articulo);
                         }
                     }
-
-                    results.values = listaFiltrada;
                 }
 
+                results.values = listaFiltrada;
+                results.count = listaFiltrada.size();
                 return results;
             }
 
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
-                articuloList.clear();
-                articuloList.addAll((List<ArticuloDomain>) results.values);
-                notifyDataSetChanged();
+                articuloListFiltrada.clear();
+                articuloListFiltrada.addAll((List<ArticuloDomain>) results.values);
+                notifyDataSetChanged(); // Notificar al RecyclerView que los datos han cambiado
             }
         };
     }
 
+    // Método para actualizar la lista principal desde la actividad
+    public void actualizarLista(List<ArticuloDomain> nuevaLista) {
+        articuloList.clear();
+        articuloList.addAll(nuevaLista);
+        articuloListFiltrada.clear();
+        articuloListFiltrada.addAll(nuevaLista);
+        notifyDataSetChanged();
+    }
+
+    // ViewHolder
     public static class ConteoViewHolder extends RecyclerView.ViewHolder {
         TextView skuTxt, almacenTxt, descripcionTxt, stockTotalTxt;
         EditText ctdContadaEdit;
@@ -162,7 +160,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         }
     }
 
-    // 🔹 Método para actualizar la cantidad contada en la base de datos
+    // Método para actualizar la cantidad contada en la base de datos
     private void updateCtdContadaEnBD(int inventariosArtID, double nuevaCantidad) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {

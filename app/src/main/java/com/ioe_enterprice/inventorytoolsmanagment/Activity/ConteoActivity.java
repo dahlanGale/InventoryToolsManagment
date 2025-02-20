@@ -3,17 +3,14 @@ package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.widget.TextView;
+import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.widget.EditText;
-
 
 import com.ioe_enterprice.inventorytoolsmanagment.Adapter.ConteoAdapter;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.ArticuloDomain;
@@ -41,15 +38,17 @@ public class ConteoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_conteo);
 
-        // 📌 Asegúrate de inicializar `articuloList` antes de usarla
+        // Inicializar la lista de artículos
         articuloList = new ArrayList<>();
 
-        RecyclerView recyclerView = findViewById(R.id.recyclerConteo);
+        // Configurar RecyclerView
+        recyclerView = findViewById(R.id.recyclerConteo);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new ConteoAdapter(articuloList, this);
         recyclerView.setAdapter(adapter);
 
+        // Obtener el folio del inventario
         String inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
         if (inventarioFolio != null) {
             loadInventarioDetalles(inventarioFolio);
@@ -57,6 +56,7 @@ public class ConteoActivity extends AppCompatActivity {
             Log.e("ConteoActivity", "Error: No se recibió INVENTARIO_FOLIO");
         }
 
+        // Configurar el filtro de búsqueda
         EditText etBuscar = findViewById(R.id.et_Buscar);
         etBuscar.addTextChangedListener(new TextWatcher() {
             @Override
@@ -64,18 +64,12 @@ public class ConteoActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (s.toString().isEmpty()) {
-                    adapter.notifyDataSetChanged(); // 🔹 Restaurar lista completa si está vacío
-                } else {
-                    adapter.getFilter().filter(s.toString());
-                }
+                adapter.getFilter().filter(s.toString()); // Aplicar el filtro
             }
 
             @Override
             public void afterTextChanged(Editable s) { }
         });
-
-
     }
 
     private void loadInventarioDetalles(String inventarioFolio) {
@@ -87,7 +81,7 @@ public class ConteoActivity extends AppCompatActivity {
                 PreparedStatement statement = connection.prepareStatement(
                         "SELECT ia.inventariosArtID, ia.SKU, ia.UPC, ia.descripcionCorta, ia.ctdContada, ia.stockTotal, " +
                                 "ia.ubicacionID, ia.usuarioID, " +
-                                "ISNULL(a.almacenDescripcion, 'Sin Almacén') AS almacenDescripcion " + // 🔹 Si no hay almacén, poner 'Sin Almacén'
+                                "ISNULL(a.almacenDescripcion, 'Sin Almacén') AS almacenDescripcion " +
                                 "FROM dtInventariosArticulos ia " +
                                 "LEFT JOIN dtProductosUbicacion pu ON ia.ubicacionID = pu.productosUbicacionID " +
                                 "LEFT JOIN tbAlmacenes a ON pu.almacenID = a.almacenID " +
@@ -107,7 +101,7 @@ public class ConteoActivity extends AppCompatActivity {
                             resultSet.getDouble("stockTotal"),
                             resultSet.getInt("ubicacionID"),
                             resultSet.getInt("usuarioID"),
-                            resultSet.getString("almacenDescripcion")  // 🔹 Se agrega el nombre del almacén
+                            resultSet.getString("almacenDescripcion")
                     ));
                 }
 
@@ -116,9 +110,7 @@ public class ConteoActivity extends AppCompatActivity {
                 connection.close();
 
                 runOnUiThread(() -> {
-                    articuloList.clear();
-                    articuloList.addAll(tempList);
-                    adapter.notifyDataSetChanged();
+                    adapter.actualizarLista(tempList); // Actualizar la lista en el adaptador
                 });
 
             } catch (Exception e) {
@@ -131,8 +123,7 @@ public class ConteoActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         Intent resultIntent = new Intent();
-        setResult(Activity.RESULT_OK, resultIntent); // 🔹 Indica que hay datos actualizados
-        finish(); // Cierra la actividad y regresa al MainActivity
+        setResult(Activity.RESULT_OK, resultIntent); // Indicar que hay datos actualizados
+        finish(); // Cerrar la actividad y regresar al MainActivity
     }
-
 }
