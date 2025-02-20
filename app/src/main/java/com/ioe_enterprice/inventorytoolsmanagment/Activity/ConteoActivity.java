@@ -64,7 +64,11 @@ public class ConteoActivity extends AppCompatActivity {
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                adapter.filtrarLista(s.toString()); // Llama al método de filtrado del adaptador
+                if (s.toString().isEmpty()) {
+                    adapter.notifyDataSetChanged(); // 🔹 Restaurar lista completa si está vacío
+                } else {
+                    adapter.getFilter().filter(s.toString());
+                }
             }
 
             @Override

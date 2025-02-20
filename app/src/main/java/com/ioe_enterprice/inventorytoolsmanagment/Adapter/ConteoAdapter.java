@@ -8,9 +8,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Filter;
+import android.widget.TextView;
+import android.widget.EditText;
 import android.widget.Filterable;
 
 import androidx.annotation.NonNull;
@@ -108,7 +108,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         return articuloList.size();
     }
 
-    // 🔹 Método para filtrar la lista dentro del RecyclerView
+    // Método para filtrar la lista dentro del RecyclerView
     @Override
     public Filter getFilter() {
         return new Filter() {
@@ -117,7 +117,8 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                 FilterResults results = new FilterResults();
 
                 if (constraint == null || constraint.length() == 0) {
-                    results.values = new ArrayList<>(articuloList); // 🔹 Si no hay filtro, muestra la lista original
+                    // 🔹 Si no hay texto, se devuelve la lista original
+                    results.values = articuloList;
                 } else {
                     String filtroPatron = constraint.toString().toLowerCase().trim();
                     List<ArticuloDomain> listaFiltrada = new ArrayList<>();
