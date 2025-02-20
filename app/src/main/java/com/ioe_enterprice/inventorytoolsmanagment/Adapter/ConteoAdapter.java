@@ -22,6 +22,7 @@ import com.ioe_enterprice.inventorytoolsmanagment.Utils.SessionManager;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,6 +45,27 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     public ConteoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.viewholder_conteo, parent, false);
         return new ConteoViewHolder(view);
+    }
+
+
+    public void filtrarLista(String texto) {
+        if (texto.isEmpty()) {
+            notifyDataSetChanged(); // Si el texto está vacío, no hay filtro
+            return;
+        }
+
+        List<ArticuloDomain> listaFiltrada = new ArrayList<>();
+        for (ArticuloDomain articulo : articuloList) {
+            if (articulo.getDescripcion().toLowerCase().contains(texto.toLowerCase()) ||
+                    String.valueOf(articulo.getSKU()).contains(texto) ||
+                    String.valueOf(articulo.getUPC()).contains(texto)) {
+                listaFiltrada.add(articulo);
+            }
+        }
+
+        articuloList.clear();
+        articuloList.addAll(listaFiltrada);
+        notifyDataSetChanged(); // Actualiza el RecyclerView
     }
 
     @Override

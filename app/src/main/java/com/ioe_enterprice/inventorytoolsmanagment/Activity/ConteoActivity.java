@@ -3,12 +3,17 @@ package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.widget.EditText;
+
 
 import com.ioe_enterprice.inventorytoolsmanagment.Adapter.ConteoAdapter;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.ArticuloDomain;
@@ -51,6 +56,22 @@ public class ConteoActivity extends AppCompatActivity {
         } else {
             Log.e("ConteoActivity", "Error: No se recibió INVENTARIO_FOLIO");
         }
+
+        EditText etBuscar = findViewById(R.id.et_Buscar);
+        etBuscar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.filtrarLista(s.toString()); // Llama al método de filtrado del adaptador
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+
+
     }
 
     private void loadInventarioDetalles(String inventarioFolio) {

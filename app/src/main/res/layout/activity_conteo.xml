@@ -8,12 +8,12 @@
     <!-- Título del Inventario -->
     <TextView
         android:id="@+id/tvInventarioFolio"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Detalle de inventario: "
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:paddingBottom="8dp"/>
+        android:layout_marginTop="16dp"
+        android:text="Detalle de Inventario"
+        android:textColor="@color/dark_blue"
+        android:textSize="28sp"/>
 
     <!-- Barra de búsqueda -->
     <EditText
