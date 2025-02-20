@@ -29,12 +29,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoViewHolder> implements Filterable {
-    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
-    private static final String DB_USER = "IOEMaster";
-    private static final String DB_PASSWORD = "Master.2024";
     private List<ArticuloDomain> articuloList; // Lista principal (todos los datos)
     private List<ArticuloDomain> articuloListFiltrada; // Lista temporal para mostrar resultados filtrados
     private Context context;
+    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
+    private static final String DB_USER = "IOEMaster";
+    private static final String DB_PASSWORD = "Master.2024";
 
     public ConteoAdapter(List<ArticuloDomain> articuloList, Context context) {
         this.articuloList = articuloList;
@@ -51,18 +51,24 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
     @Override
     public void onBindViewHolder(@NonNull ConteoViewHolder holder, int position) {
-        ArticuloDomain item = articuloListFiltrada.get(position); // Usar la lista filtrada para mostrar
+        ArticuloDomain item = articuloListFiltrada.get(position); // Obtener el artículo de la lista filtrada
+
+        // Asignar el ID único al ViewHolder
+        holder.inventariosArtID = item.getInventariosArtID();
+
+        // Mostrar los datos en los campos
         holder.skuTxt.setText("Sku: " + item.getSKU());
         holder.almacenTxt.setText("Almacén: " + item.getAlmacenDescripcion());
         holder.descripcionTxt.setText(item.getDescripcion());
         holder.ctdContadaEdit.setText(String.valueOf(item.getCtdContada()));
         holder.stockTotalTxt.setText("Stock: " + item.getStockTotal());
 
-        // TextWatcher para detectar cambios en la cantidad contada
+        // Limpiar el TextWatcher anterior para evitar duplicados
         if (holder.ctdContadaEdit.getTag() instanceof TextWatcher) {
             holder.ctdContadaEdit.removeTextChangedListener((TextWatcher) holder.ctdContadaEdit.getTag());
         }
 
+        // Crear un nuevo TextWatcher
         TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -74,14 +80,22 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
             public void afterTextChanged(Editable s) {
                 if (!s.toString().isEmpty()) {
                     double nuevaCantidad = Double.parseDouble(s.toString());
-                    if (item.getCtdContada() != nuevaCantidad) {
-                        item.setCtdContada(nuevaCantidad);
-                        updateCtdContadaEnBD(item.getInventariosArtID(), nuevaCantidad);
+
+                    // Buscar el artículo en la lista filtrada por su ID único
+                    for (ArticuloDomain articulo : articuloListFiltrada) {
+                        if (articulo.getInventariosArtID() == holder.inventariosArtID) {
+                            if (articulo.getCtdContada() != nuevaCantidad) {
+                                articulo.setCtdContada(nuevaCantidad);
+                                updateCtdContadaEnBD(articulo.getInventariosArtID(), nuevaCantidad);
+                            }
+                            break;
+                        }
                     }
                 }
             }
         };
 
+        // Asignar el TextWatcher al EditText
         holder.ctdContadaEdit.addTextChangedListener(watcher);
         holder.ctdContadaEdit.setTag(watcher);
 
@@ -89,8 +103,15 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         holder.btnSetStock.setOnClickListener(v -> {
             double stockTotal = item.getStockTotal();
             holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
-            item.setCtdContada(stockTotal);
-            updateCtdContadaEnBD(item.getInventariosArtID(), stockTotal);
+
+            // Buscar el artículo en la lista filtrada por su ID único
+            for (ArticuloDomain articulo : articuloListFiltrada) {
+                if (articulo.getInventariosArtID() == holder.inventariosArtID) {
+                    articulo.setCtdContada(stockTotal);
+                    updateCtdContadaEnBD(articulo.getInventariosArtID(), stockTotal);
+                    break;
+                }
+            }
         });
     }
 
@@ -148,6 +169,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         TextView skuTxt, almacenTxt, descripcionTxt, stockTotalTxt;
         EditText ctdContadaEdit;
         Button btnSetStock;
+        int inventariosArtID; // 🔹 Variable para almacenar el ID único
 
         public ConteoViewHolder(@NonNull View itemView) {
             super(itemView);
