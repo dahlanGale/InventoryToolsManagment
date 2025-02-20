@@ -1,6 +1,5 @@
 package com.ioe_enterprice.inventorytoolsmanagment.Adapter;
 
-
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -11,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Filter;
+import android.widget.Filterable;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,7 +28,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoViewHolder> {
+public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoViewHolder> implements Filterable {
     private List<ArticuloDomain> articuloList;
     private Context context;
 
@@ -47,36 +48,9 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         return new ConteoViewHolder(view);
     }
 
-
-    public void filtrarLista(String texto) {
-        if (texto.isEmpty()) {
-            notifyDataSetChanged(); // Si el texto está vacío, no hay filtro
-            return;
-        }
-
-        List<ArticuloDomain> listaFiltrada = new ArrayList<>();
-        for (ArticuloDomain articulo : articuloList) {
-            if (articulo.getDescripcion().toLowerCase().contains(texto.toLowerCase()) ||
-                    String.valueOf(articulo.getSKU()).contains(texto) ||
-                    String.valueOf(articulo.getUPC()).contains(texto)) {
-                listaFiltrada.add(articulo);
-            }
-        }
-
-        articuloList.clear();
-        articuloList.addAll(listaFiltrada);
-        notifyDataSetChanged(); // Actualiza el RecyclerView
-    }
-
     @Override
     public void onBindViewHolder(@NonNull ConteoViewHolder holder, int position) {
         ArticuloDomain item = articuloList.get(position);
-        Log.d("ConteoAdapter", "skuTxt: " + holder.skuTxt);
-        Log.d("ConteoAdapter", "almacenTxt: " + holder.almacenTxt);
-        Log.d("ConteoAdapter", "descripcionTxt: " + holder.descripcionTxt);
-        Log.d("ConteoAdapter", "stockTotalTxt: " + holder.stockTotalTxt);
-        Log.d("ConteoAdapter", "ctdContadaEdit: " + holder.ctdContadaEdit);
-        Log.d("ConteoAdapter", "btnSetStock: " + holder.btnSetStock);
 
         holder.skuTxt.setText("Sku: " + item.getSKU());
         holder.almacenTxt.setText("Almacén: " + item.getAlmacenDescripcion());
@@ -92,7 +66,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
             holder.ctdContadaEdit.removeTextChangedListener((TextWatcher) holder.ctdContadaEdit.getTag());
         }
 
-        //TextWatcher para detectar cambios manuales en el EditText
+        // TextWatcher para detectar cambios manuales en el EditText
         TextWatcher watcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -120,11 +94,11 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         holder.btnSetStock.setOnClickListener(v -> {
             double stockTotal = item.getStockTotal();
             if (item.getCtdContada() != stockTotal) {
-                isUpdating[0] = true; //Desactiva temporalmente el TextWatcher
+                isUpdating[0] = true; // Desactiva temporalmente el TextWatcher
                 holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
                 item.setCtdContada(stockTotal);
                 updateCtdContadaEnBD(item.getInventariosArtID(), stockTotal);
-                isUpdating[0] = false; //Reactiva el TextWatcher
+                isUpdating[0] = false; // Reactiva el TextWatcher
             }
         });
     }
@@ -132,6 +106,43 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     @Override
     public int getItemCount() {
         return articuloList.size();
+    }
+
+    // 🔹 Método para filtrar la lista dentro del RecyclerView
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                FilterResults results = new FilterResults();
+
+                if (constraint == null || constraint.length() == 0) {
+                    results.values = new ArrayList<>(articuloList); // 🔹 Si no hay filtro, muestra la lista original
+                } else {
+                    String filtroPatron = constraint.toString().toLowerCase().trim();
+                    List<ArticuloDomain> listaFiltrada = new ArrayList<>();
+
+                    for (ArticuloDomain articulo : articuloList) {
+                        if (articulo.getDescripcion().toLowerCase().contains(filtroPatron) ||
+                                String.valueOf(articulo.getSKU()).contains(filtroPatron) ||
+                                String.valueOf(articulo.getUPC()).contains(filtroPatron)) {
+                            listaFiltrada.add(articulo);
+                        }
+                    }
+
+                    results.values = listaFiltrada;
+                }
+
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                articuloList.clear();
+                articuloList.addAll((List<ArticuloDomain>) results.values);
+                notifyDataSetChanged();
+            }
+        };
     }
 
     public static class ConteoViewHolder extends RecyclerView.ViewHolder {
@@ -142,7 +153,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         public ConteoViewHolder(@NonNull View itemView) {
             super(itemView);
             skuTxt = itemView.findViewById(R.id.skuTxt);
-            almacenTxt = itemView.findViewById(R.id.almacenTxt); // Debe devolver el TextView correcto
+            almacenTxt = itemView.findViewById(R.id.almacenTxt);
             descripcionTxt = itemView.findViewById(R.id.descripcionTxt);
             stockTotalTxt = itemView.findViewById(R.id.stockTotalTxt);
             ctdContadaEdit = itemView.findViewById(R.id.ctdContadaEdit);
@@ -150,7 +161,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         }
     }
 
-    // 🔹 Método para actualizar la cantidad contada y la fecha en la base de datos
+    // 🔹 Método para actualizar la cantidad contada en la base de datos
     private void updateCtdContadaEnBD(int inventariosArtID, double nuevaCantidad) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
@@ -158,25 +169,18 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-                // Obtener usuarioID desde caché
                 SessionManager sessionManager = new SessionManager(context);
                 int usuarioID = sessionManager.getUserID();
 
-                //Consulta SQL para actualizar ctdContada, usuarioID y fechaConteo
                 PreparedStatement statement = connection.prepareStatement(
-                        "UPDATE dtInventariosArticulos " +
-                                "SET ctdContada = ?, usuarioID = ?, fechaConteo = CURRENT_TIMESTAMP " +
-                                "WHERE inventariosArtID = ?");
+                        "UPDATE dtInventariosArticulos SET ctdContada = ?, usuarioID = ?, fechaConteo = CURRENT_TIMESTAMP WHERE inventariosArtID = ?");
                 statement.setDouble(1, nuevaCantidad);
                 statement.setInt(2, usuarioID);
                 statement.setInt(3, inventariosArtID);
 
-                int rowsUpdated = statement.executeUpdate();
+                statement.executeUpdate();
                 statement.close();
                 connection.close();
-
-                Log.d("DB_UPDATE", "Cantidad actualizada para inventariosArtID: " + inventariosArtID +
-                        ", Filas afectadas: " + rowsUpdated + ", Fecha: NOW()");
             } catch (Exception e) {
                 Log.e("DB_ERROR", "Error al actualizar ctdContada", e);
             }
