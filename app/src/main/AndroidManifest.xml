@@ -15,16 +15,19 @@
         android:theme="@style/Theme.InventoryToolsManagment"
         tools:targetApi="31">
         <activity
+            android:name=".Activity.SplashScreenActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".Activity.ConteoActivity"
             android:exported="false" />
         <activity
             android:name=".Activity.LoginActivity"
             android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".Activity.ProfileActivity"
