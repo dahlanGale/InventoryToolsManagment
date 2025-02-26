@@ -13,7 +13,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
 
 public class SplashScreenActivity extends AppCompatActivity {
-    private static final int SPLASH_TIME = 5000; // 5 segundos
+    private static final int SPLASH_TIME = 3000; // 3 segundos
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,0 +1,10 @@
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/almacenText"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:text="Almacén"
+    android:textSize="16sp"
+    android:background="@drawable/filtro_background"
+    android:textColor="@color/black"
+    android:layout_marginEnd="8dp"/>
