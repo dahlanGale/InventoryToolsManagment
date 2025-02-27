@@ -15,6 +15,24 @@
         android:textColor="@color/dark_blue"
         android:textSize="28sp"/>
 
+    <!-- Contenedor para los filtros de almacén -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp">
+
+        <LinearLayout
+            android:id="@+id/containerFiltrosAlmacen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <!-- Aquí se agregarán dinámicamente los botones de filtrado -->
+        </LinearLayout>
+    </HorizontalScrollView>
+
     <!-- Barra de búsqueda -->
     <EditText
         android:id="@+id/et_Buscar"

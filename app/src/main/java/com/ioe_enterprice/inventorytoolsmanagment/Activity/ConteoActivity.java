@@ -6,7 +6,10 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,6 +32,9 @@ public class ConteoActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ConteoAdapter adapter;
     private List<ArticuloDomain> articuloList;
+    private List<String> almacenesList; // Lista de almacenes disponibles
+    private List<String> selectedAlmacenes = new ArrayList<>(); // Almacenes seleccionados para el filtro
+    private LinearLayout containerFiltrosAlmacen;
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
     private static final String DB_USER = "IOEMaster";
     private static final String DB_PASSWORD = "Master.2024";
@@ -70,6 +76,12 @@ public class ConteoActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) { }
         });
+
+        // Inicializar el contenedor de filtros de almacén
+        containerFiltrosAlmacen = findViewById(R.id.containerFiltrosAlmacen);
+
+        // Cargar los almacenes disponibles
+        loadAlmacenes();
     }
 
     private void loadInventarioDetalles(String inventarioFolio) {
@@ -118,6 +130,67 @@ public class ConteoActivity extends AppCompatActivity {
             }
         });
         executor.shutdown();
+    }
+
+    private void loadAlmacenes() {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> {
+            try {
+                Class.forName("net.sourceforge.jtds.jdbc.Driver");
+                Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                PreparedStatement statement = connection.prepareStatement(
+                        "SELECT DISTINCT almacenDescripcion FROM tbAlmacenes");
+                ResultSet resultSet = statement.executeQuery();
+
+                almacenesList = new ArrayList<>();
+                while (resultSet.next()) {
+                    almacenesList.add(resultSet.getString("almacenDescripcion"));
+                }
+
+                resultSet.close();
+                statement.close();
+                connection.close();
+
+                runOnUiThread(() -> {
+                    // Crear botones de filtrado para cada almacén
+                    for (String almacen : almacenesList) {
+                        Button button = new Button(this);
+                        button.setText(almacen);
+                        button.setBackgroundResource(R.drawable.button_filter_background);
+                        button.setTextColor(getResources().getColor(R.color.dark_blue));
+                        button.setOnClickListener(v -> {
+                            if (selectedAlmacenes.contains(almacen)) {
+                                selectedAlmacenes.remove(almacen);
+                                button.setBackgroundResource(R.drawable.button_filter_background);
+                            } else {
+                                selectedAlmacenes.add(almacen);
+                                button.setBackgroundResource(R.drawable.button_filter_background_selected);
+                            }
+                            applyAlmacenFilter(); // Aplicar el filtro
+                        });
+                        containerFiltrosAlmacen.addView(button);
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e("DB_ERROR", "Error al cargar almacenes", e);
+            }
+        });
+        executor.shutdown();
+    }
+
+    private void applyAlmacenFilter() {
+        if (selectedAlmacenes.isEmpty()) {
+            adapter.actualizarLista(articuloList); // Mostrar todos los artículos si no hay filtros
+        } else {
+            List<ArticuloDomain> filteredList = new ArrayList<>();
+            for (ArticuloDomain articulo : articuloList) {
+                if (selectedAlmacenes.contains(articulo.getAlmacenDescripcion())) {
+                    filteredList.add(articulo);
+                }
+            }
+            adapter.actualizarLista(filteredList); // Aplicar el filtro
+        }
     }
 
     @Override
