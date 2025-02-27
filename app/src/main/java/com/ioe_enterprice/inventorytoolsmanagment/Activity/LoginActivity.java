@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -28,9 +29,11 @@ import java.util.concurrent.TimeoutException;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private SessionManager sessionManager;
     private EditText etUsername, etPassword;
     private Button btnLogin;
     private TextView tvError;
+    private CheckBox cbRememberMe;
 
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
     private static final String DB_USER = "IOEMaster";
@@ -42,22 +45,30 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         // Inicializar vistas
-        etUsername = findViewById(R.id.et_user);  // Cambia a etUsername
+        etUsername = findViewById(R.id.et_user);
         etPassword = findViewById(R.id.et_Password);
         btnLogin = findViewById(R.id.btnLogin);
         tvError = findViewById(R.id.tvError);
+        cbRememberMe = findViewById(R.id.cbRememberMe);
 
+        sessionManager = new SessionManager(this);
+
+        // Verificar si el usuario ya ha iniciado sesión y si la casilla "Recuérdame" está activada
+        if (sessionManager.isRememberMe() && sessionManager.isLoggedIn()) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish(); // Cerrar la actividad de inicio de sesión
+        }
 
         // Configurar el evento de clic del botón de inicio de sesión
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Obtener los valores de los campos
-                String username = etUsername.getText().toString().trim();  // Cambia a username
+                String username = etUsername.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
 
                 // Validar las credenciales en un hilo secundario
-                validateCredentials(username, password);  // Cambia a username
+                validateCredentials(username, password);
             }
         });
     }
@@ -70,36 +81,32 @@ public class LoginActivity extends AppCompatActivity {
             ResultSet resultSet = null;
 
             try {
-                // Conexión a la base de datos
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-                // Consulta SQL para validar las credenciales
-                String query = "SELECT usuarioID FROM tbUsuarios WHERE usuario = ? AND passwordUser = ?";  // Cambia a username
+                String query = "SELECT usuarioID FROM tbUsuarios WHERE usuario = ? AND passwordUser = ?";
                 statement = connection.prepareStatement(query);
-                statement.setString(1, username);  // Cambia a username
+                statement.setString(1, username);
                 statement.setString(2, password);
 
-                // Ejecutar la consulta
                 resultSet = statement.executeQuery();
 
-                // Verificar si se encontró un usuario con las credenciales proporcionadas
                 if (resultSet.next()) {
-                    int usuarioID = resultSet.getInt("usuarioID"); //Guarda el usuario en el caché
+                    int usuarioID = resultSet.getInt("usuarioID");
 
-                    SessionManager sessionManager = new SessionManager(LoginActivity.this);
+                    // Guardar el ID del usuario y el estado de "Recuérdame"
                     sessionManager.saveUserID(usuarioID);
+                    sessionManager.setRememberMe(cbRememberMe.isChecked());
+                    sessionManager.setLoggedIn(true);
 
-                    // Si las credenciales son válidas, redirigir a la actividad principal
                     runOnUiThread(() -> {
                         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                         startActivity(intent);
-                        finish(); // Cerrar la actividad de inicio de sesión
+                        finish();
                     });
                 } else {
-                    // Mostrar mensaje de error en el hilo principal
                     runOnUiThread(() -> {
-                        tvError.setText("Nombre de usuario o contraseña incorrectos");  // Cambia el mensaje de error
+                        tvError.setText("Nombre de usuario o contraseña incorrectos");
                         tvError.setVisibility(View.VISIBLE);
                     });
                 }
@@ -111,7 +118,6 @@ public class LoginActivity extends AppCompatActivity {
                     tvError.setVisibility(View.VISIBLE);
                 });
             } finally {
-                // Cerrar recursos
                 try {
                     if (resultSet != null) resultSet.close();
                     if (statement != null) statement.close();
@@ -123,11 +129,10 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         try {
-            // Esperar máximo 5 segundos
             future.get(5, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
             Log.e("LOGIN_ERROR", "Timeout al validar las credenciales", e);
-            future.cancel(true); // Cancelar la tarea si excede el tiempo
+            future.cancel(true);
             runOnUiThread(() -> {
                 tvError.setText("Tiempo de espera agotado. Intente nuevamente.");
                 tvError.setVisibility(View.VISIBLE);
