@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -24,7 +25,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,7 +35,7 @@ public class ConteoActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ConteoAdapter adapter;
     private List<ArticuloDomain> articuloList;
-    private List<String> almacenesList; // Lista de almacenes disponibles
+    private Set<String> almacenesSet; // Usamos un Set para almacenes únicos
     private List<String> selectedAlmacenes = new ArrayList<>(); // Almacenes seleccionados para el filtro
     private LinearLayout containerFiltrosAlmacen;
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
@@ -46,6 +49,7 @@ public class ConteoActivity extends AppCompatActivity {
 
         // Inicializar la lista de artículos
         articuloList = new ArrayList<>();
+        almacenesSet = new HashSet<>(); // Inicializar el Set de almacenes
 
         // Configurar RecyclerView
         recyclerView = findViewById(R.id.recyclerConteo);
@@ -79,9 +83,6 @@ public class ConteoActivity extends AppCompatActivity {
 
         // Inicializar el contenedor de filtros de almacén
         containerFiltrosAlmacen = findViewById(R.id.containerFiltrosAlmacen);
-
-        // Cargar los almacenes disponibles
-        loadAlmacenes();
     }
 
     private void loadInventarioDetalles(String inventarioFolio) {
@@ -104,7 +105,7 @@ public class ConteoActivity extends AppCompatActivity {
                 List<ArticuloDomain> tempList = new ArrayList<>();
 
                 while (resultSet.next()) {
-                    tempList.add(new ArticuloDomain(
+                    ArticuloDomain articulo = new ArticuloDomain(
                             resultSet.getInt("inventariosArtID"),
                             resultSet.getInt("SKU"),
                             resultSet.getLong("UPC"),
@@ -114,7 +115,9 @@ public class ConteoActivity extends AppCompatActivity {
                             resultSet.getInt("ubicacionID"),
                             resultSet.getInt("usuarioID"),
                             resultSet.getString("almacenDescripcion")
-                    ));
+                    );
+                    tempList.add(articulo);
+                    almacenesSet.add(articulo.getAlmacenDescripcion()); // Agregar almacén al Set
                 }
 
                 resultSet.close();
@@ -123,6 +126,7 @@ public class ConteoActivity extends AppCompatActivity {
 
                 runOnUiThread(() -> {
                     adapter.actualizarLista(tempList); // Actualizar la lista en el adaptador
+                    createAlmacenButtons(); // Crear los botones de filtrado
                 });
 
             } catch (Exception e) {
@@ -132,51 +136,40 @@ public class ConteoActivity extends AppCompatActivity {
         executor.shutdown();
     }
 
-    private void loadAlmacenes() {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.submit(() -> {
-            try {
-                Class.forName("net.sourceforge.jtds.jdbc.Driver");
-                Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-                PreparedStatement statement = connection.prepareStatement(
-                        "SELECT DISTINCT almacenDescripcion FROM tbAlmacenes");
-                ResultSet resultSet = statement.executeQuery();
+    private void createAlmacenButtons() {
+        containerFiltrosAlmacen.removeAllViews(); // Limpiar botones anteriores
 
-                almacenesList = new ArrayList<>();
-                while (resultSet.next()) {
-                    almacenesList.add(resultSet.getString("almacenDescripcion"));
+        // Crear botones de filtrado para cada almacén
+        for (String almacen : almacenesSet) {
+            Button button = new Button(this);
+            button.setText(almacen);
+            button.setBackgroundResource(R.drawable.button_filter_background);
+            button.setTextColor(getResources().getColor(R.color.black)); // Color de texto inicial
+            button.setPadding(16, 8, 16, 8); // Añadir margen interno
+
+            // Añadir margen entre botones
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(8, 0, 8, 0); // Margen horizontal entre botones
+            button.setLayoutParams(params);
+
+            button.setOnClickListener(v -> {
+                if (selectedAlmacenes.contains(almacen)) {
+                    selectedAlmacenes.remove(almacen);
+                    button.setBackgroundResource(R.drawable.button_filter_background);
+                    button.setTextColor(getResources().getColor(R.color.black)); // Restaurar color de texto
+                } else {
+                    selectedAlmacenes.add(almacen);
+                    button.setBackgroundResource(R.drawable.button_filter_background_selected);
+                    button.setTextColor(getResources().getColor(R.color.white)); // Cambiar color de texto al seleccionar
                 }
+                applyAlmacenFilter(); // Aplicar el filtro
+            });
 
-                resultSet.close();
-                statement.close();
-                connection.close();
-
-                runOnUiThread(() -> {
-                    // Crear botones de filtrado para cada almacén
-                    for (String almacen : almacenesList) {
-                        Button button = new Button(this);
-                        button.setText(almacen);
-                        button.setBackgroundResource(R.drawable.button_filter_background);
-                        button.setTextColor(getResources().getColor(R.color.dark_blue));
-                        button.setOnClickListener(v -> {
-                            if (selectedAlmacenes.contains(almacen)) {
-                                selectedAlmacenes.remove(almacen);
-                                button.setBackgroundResource(R.drawable.button_filter_background);
-                            } else {
-                                selectedAlmacenes.add(almacen);
-                                button.setBackgroundResource(R.drawable.button_filter_background_selected);
-                            }
-                            applyAlmacenFilter(); // Aplicar el filtro
-                        });
-                        containerFiltrosAlmacen.addView(button);
-                    }
-                });
-
-            } catch (Exception e) {
-                Log.e("DB_ERROR", "Error al cargar almacenes", e);
-            }
-        });
-        executor.shutdown();
+            containerFiltrosAlmacen.addView(button);
+        }
     }
 
     private void applyAlmacenFilter() {
