@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-                String query = "SELECT usuarioID FROM tbUsuarios WHERE usuario = ? AND passwordUser = ?";
+                String query = "SELECT usuarioID, nombre, email, rol FROM tbUsuarios WHERE usuario = ? AND passwordUser = ?";
                 statement = connection.prepareStatement(query);
                 statement.setString(1, username);
                 statement.setString(2, password);
@@ -93,9 +93,15 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (resultSet.next()) {
                     int usuarioID = resultSet.getInt("usuarioID");
+                    String nombre = resultSet.getString("nombre");
+                    String email = resultSet.getString("email");
+                    String rol = resultSet.getString("rol");
 
-                    // Guardar el ID del usuario y el estado de "Recuérdame"
+                    // Guardar los datos del usuario y el estado de "Recuérdame"
                     sessionManager.saveUserID(usuarioID);
+                    sessionManager.saveUserName(nombre);
+                    sessionManager.saveUserEmail(email);
+                    sessionManager.saveUserRol(rol);
                     sessionManager.setRememberMe(cbRememberMe.isChecked());
                     sessionManager.setLoggedIn(true);
 

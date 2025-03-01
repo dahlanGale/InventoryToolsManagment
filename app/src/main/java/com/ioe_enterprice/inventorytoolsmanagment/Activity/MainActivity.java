@@ -17,12 +17,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.ioe_enterprice.inventorytoolsmanagment.Adapter.InventariosAdapter;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.OngoingDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
+import com.ioe_enterprice.inventorytoolsmanagment.Utils.SessionManager;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     private List<OngoingDomain> inventoryList; // Lista completa de 10 registros
     private TextView tvShowMore;
     private boolean isExpanded = false;
+    private SessionManager sessionManager;
+    private TextView tvWelcomeUser;
+    private TextView tvWelcomeTime;
 
     // Datos de conexión a la base de datos
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
@@ -45,6 +50,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Inicializar SessionManager
+        sessionManager = new SessionManager(this);
+
+        // Inicializar TextViews de bienvenida
+        tvWelcomeUser = findViewById(R.id.tv_WelcomeUser);
+        tvWelcomeTime = findViewById(R.id.tv_WelcomeTime);
+        
+        // Configurar los mensajes de bienvenida
+        setWelcomeMessages();
 
         recyclerView = findViewById(R.id.viewOngoing);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -76,6 +91,31 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
             startActivity(intent);
         });
+    }
+
+    private void setWelcomeMessages() {
+        // Obtener el nombre del usuario
+        String userName = sessionManager.getUserName();
+        
+        // Establecer el mensaje de bienvenida con el nombre del usuario
+        tvWelcomeUser.setText("Hola " + userName);
+        
+        // Obtener la hora actual
+        Calendar calendar = Calendar.getInstance();
+        int hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+        
+        // Determinar el saludo según la hora del día
+        String greeting;
+        if (hourOfDay >= 0 && hourOfDay < 12) {
+            greeting = "¡Buenos días!";
+        } else if (hourOfDay >= 12 && hourOfDay < 18) {
+            greeting = "¡Buenas tardes!";
+        } else {
+            greeting = "¡Buenas noches!";
+        }
+        
+        // Establecer el saludo según la hora
+        tvWelcomeTime.setText(greeting);
     }
 
     private void toggleListSize() {
@@ -140,6 +180,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         loadActiveInventories();  // Recarga los inventarios al volver a MainActivity
+        setWelcomeMessages();     // Actualiza los mensajes de bienvenida
     }
 
 }

@@ -28,8 +28,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:padding="8dp">
-
-            <!-- Aquí se agregarán dinámicamente los botones de filtrado -->
         </LinearLayout>
     </HorizontalScrollView>
 

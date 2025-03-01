@@ -35,11 +35,11 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
-                    android:id="@+id/textView8"
+                    android:id="@+id/textViewUserName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:text="Carlos Williams"
+                    android:text=""
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold"
@@ -48,15 +48,15 @@
                     app:layout_constraintTop_toBottomOf="@+id/imageView3" />
 
                 <TextView
-                    android:id="@+id/textView9"
+                    android:id="@+id/textViewUserRole"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Android Programmer"
+                    android:text=""
                     android:textColor="@color/white"
                     android:textSize="16sp"
-                    app:layout_constraintEnd_toEndOf="@+id/textView8"
-                    app:layout_constraintStart_toStartOf="@+id/textView8"
-                    app:layout_constraintTop_toBottomOf="@+id/textView8" />
+                    app:layout_constraintEnd_toEndOf="@+id/textViewUserName"
+                    app:layout_constraintStart_toStartOf="@+id/textViewUserName"
+                    app:layout_constraintTop_toBottomOf="@+id/textViewUserName" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -211,7 +211,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clipToPadding="false" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
