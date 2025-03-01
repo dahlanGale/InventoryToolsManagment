@@ -129,10 +129,10 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                 List<ArticuloDomain> listaFiltrada = new ArrayList<>();
 
                 if (constraint == null || constraint.length() == 0) {
-                    listaFiltrada.addAll(articuloList); // Restaurar todos los elementos
+                    listaFiltrada.addAll(articuloList); // Usar la lista principal, no la filtrada
                 } else {
                     String filtroPatron = constraint.toString().toLowerCase().trim();
-                    for (ArticuloDomain articulo : articuloList) {
+                    for (ArticuloDomain articulo : articuloList) { // Filtrar desde la lista principal
                         if (articulo.getDescripcion().toLowerCase().contains(filtroPatron) ||
                                 String.valueOf(articulo.getSKU()).contains(filtroPatron) ||
                                 String.valueOf(articulo.getUPC()).contains(filtroPatron)) {
@@ -149,7 +149,9 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
             @Override
             protected void publishResults(CharSequence constraint, FilterResults results) {
                 articuloListFiltrada.clear();
-                articuloListFiltrada.addAll((List<ArticuloDomain>) results.values);
+                if (results.values != null) {
+                    articuloListFiltrada.addAll((List<ArticuloDomain>) results.values);
+                }
                 notifyDataSetChanged(); // Notificar al RecyclerView que los datos han cambiado
             }
         };
@@ -157,8 +159,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
     // Método para actualizar la lista principal desde la actividad
     public void actualizarLista(List<ArticuloDomain> nuevaLista) {
-        articuloList.clear();
-        articuloList.addAll(nuevaLista);
+        articuloList = new ArrayList<>(nuevaLista);
         articuloListFiltrada.clear();
         articuloListFiltrada.addAll(nuevaLista);
         notifyDataSetChanged();

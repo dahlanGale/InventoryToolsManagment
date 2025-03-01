@@ -125,6 +125,8 @@ public class ConteoActivity extends AppCompatActivity {
                 connection.close();
 
                 runOnUiThread(() -> {
+                    articuloList.clear();
+                    articuloList.addAll(tempList);
                     adapter.actualizarLista(tempList); // Actualizar la lista en el adaptador
                     createAlmacenButtons(); // Crear los botones de filtrado
                 });
@@ -186,7 +188,8 @@ public class ConteoActivity extends AppCompatActivity {
 
     private void applyAlmacenFilter() {
         if (selectedAlmacen == null) {
-            adapter.actualizarLista(articuloList); // Mostrar todos los artículos si no hay filtro
+            // Mostrar todos los artículos si no hay filtro
+            adapter.actualizarLista(new ArrayList<>(articuloList));
         } else {
             List<ArticuloDomain> filteredList = new ArrayList<>();
             for (ArticuloDomain articulo : articuloList) {
