@@ -36,7 +36,7 @@ public class ConteoActivity extends AppCompatActivity {
     private ConteoAdapter adapter;
     private List<ArticuloDomain> articuloList;
     private Set<String> almacenesSet; // Usamos un Set para almacenes únicos
-    private List<String> selectedAlmacenes = new ArrayList<>(); // Almacenes seleccionados para el filtro
+    private String selectedAlmacen = null; // Almacén seleccionado para el filtro (null si ninguno está seleccionado)
     private LinearLayout containerFiltrosAlmacen;
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
     private static final String DB_USER = "IOEMaster";
@@ -144,28 +144,40 @@ public class ConteoActivity extends AppCompatActivity {
             Button button = new Button(this);
             button.setText(almacen);
             button.setBackgroundResource(R.drawable.button_filter_background);
-            button.setTextColor(getResources().getColor(R.color.black)); // Color de texto inicial
-            button.setPadding(16, 8, 16, 8); // Añadir margen interno
+            button.setTextColor(getResources().getColor(R.color.black));
+            button.setPadding(16, 8, 16, 8);
 
-            // Añadir margen entre botones
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT
             );
-            params.setMargins(8, 0, 8, 0); // Margen horizontal entre botones
+            params.setMargins(8, 0, 8, 0);
             button.setLayoutParams(params);
 
             button.setOnClickListener(v -> {
-                if (selectedAlmacenes.contains(almacen)) {
-                    selectedAlmacenes.remove(almacen);
+                // Si el almacén ya está seleccionado, lo deseleccionamos
+                if (almacen.equals(selectedAlmacen)) {
+                    selectedAlmacen = null;
                     button.setBackgroundResource(R.drawable.button_filter_background);
-                    button.setTextColor(getResources().getColor(R.color.black)); // Restaurar color de texto
+                    button.setTextColor(getResources().getColor(R.color.black));
                 } else {
-                    selectedAlmacenes.add(almacen);
+                    // Deseleccionar el botón anterior si existe
+                    if (selectedAlmacen != null) {
+                        for (int i = 0; i < containerFiltrosAlmacen.getChildCount(); i++) {
+                            Button otherButton = (Button) containerFiltrosAlmacen.getChildAt(i);
+                            if (otherButton.getText().toString().equals(selectedAlmacen)) {
+                                otherButton.setBackgroundResource(R.drawable.button_filter_background);
+                                otherButton.setTextColor(getResources().getColor(R.color.black));
+                                break;
+                            }
+                        }
+                    }
+                    // Seleccionar el nuevo almacén
+                    selectedAlmacen = almacen;
                     button.setBackgroundResource(R.drawable.button_filter_background_selected);
-                    button.setTextColor(getResources().getColor(R.color.white)); // Cambiar color de texto al seleccionar
+                    button.setTextColor(getResources().getColor(R.color.white));
                 }
-                applyAlmacenFilter(); // Aplicar el filtro
+                applyAlmacenFilter();
             });
 
             containerFiltrosAlmacen.addView(button);
@@ -173,16 +185,16 @@ public class ConteoActivity extends AppCompatActivity {
     }
 
     private void applyAlmacenFilter() {
-        if (selectedAlmacenes.isEmpty()) {
-            adapter.actualizarLista(articuloList); // Mostrar todos los artículos si no hay filtros
+        if (selectedAlmacen == null) {
+            adapter.actualizarLista(articuloList); // Mostrar todos los artículos si no hay filtro
         } else {
             List<ArticuloDomain> filteredList = new ArrayList<>();
             for (ArticuloDomain articulo : articuloList) {
-                if (selectedAlmacenes.contains(articulo.getAlmacenDescripcion())) {
+                if (selectedAlmacen.equals(articulo.getAlmacenDescripcion())) {
                     filteredList.add(articulo);
                 }
             }
-            adapter.actualizarLista(filteredList); // Aplicar el filtro
+            adapter.actualizarLista(filteredList);
         }
     }
 

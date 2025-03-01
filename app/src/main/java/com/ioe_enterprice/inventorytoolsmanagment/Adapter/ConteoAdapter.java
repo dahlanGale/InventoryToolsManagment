@@ -169,7 +169,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         TextView skuTxt, almacenTxt, descripcionTxt, stockTotalTxt;
         EditText ctdContadaEdit;
         Button btnSetStock;
-        int inventariosArtID; // 🔹 Variable para almacenar el ID único
+        int inventariosArtID; // Variable para almacenar el ID único
 
         public ConteoViewHolder(@NonNull View itemView) {
             super(itemView);
