@@ -172,7 +172,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:id="@+id/profileBtn"
+                    android:id="@+id/logoutBtm"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -184,15 +184,15 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:layout_gravity="center"
-                        app:tint="@color/dark_blue"
-                        app:srcCompat="@drawable/bottom_btn4" />
+                        app:srcCompat="@drawable/ic_exit_app"
+                        app:tint="@color/dark_blue" />
 
                     <TextView
                         android:id="@+id/textView7"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Usuario"
+                        android:text="Cerrar Sesión"
                         android:textAlignment="center"
                         android:textColor="@color/dark_blue"
                         android:textSize="12sp" />

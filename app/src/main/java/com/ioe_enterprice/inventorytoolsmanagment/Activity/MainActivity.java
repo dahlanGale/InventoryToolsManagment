@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private SessionManager sessionManager;
     private TextView tvWelcomeUser;
     private TextView tvWelcomeTime;
+    private LinearLayout logoutBtm;
 
     // Datos de conexión a la base de datos
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
@@ -60,6 +61,12 @@ public class MainActivity extends AppCompatActivity {
         
         // Configurar los mensajes de bienvenida
         setWelcomeMessages();
+
+        // Inicializar y configurar el botón de logout
+        logoutBtm = findViewById(R.id.logoutBtm);
+        logoutBtm.setOnClickListener(v -> {
+            logout();
+        });
 
         recyclerView = findViewById(R.id.viewOngoing);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -86,11 +93,6 @@ public class MainActivity extends AppCompatActivity {
 
         loadActiveInventories();
 
-        LinearLayout profileBtn = findViewById(R.id.profileBtn);
-        profileBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
-            startActivity(intent);
-        });
     }
 
     private void setWelcomeMessages() {
@@ -181,6 +183,21 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         loadActiveInventories();  // Recarga los inventarios al volver a MainActivity
         setWelcomeMessages();     // Actualiza los mensajes de bienvenida
+    }
+
+    /**
+     * Método para cerrar la sesión del usuario
+     */
+    private void logout() {
+        // Limpiar la sesión
+        sessionManager.clearSession();
+        
+        // Redirigir al usuario a la pantalla de login
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        // Eliminar actividades anteriores de la pila
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 
 }
