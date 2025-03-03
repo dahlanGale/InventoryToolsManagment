@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -78,19 +79,70 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (!s.toString().isEmpty()) {
-                    double nuevaCantidad = Double.parseDouble(s.toString());
+                // Verificar si el texto contiene espacios y eliminarlos
+                String texto = s.toString();
+                if (texto.contains(" ")) {
+                    texto = texto.replace(" ", "");
+                    holder.ctdContadaEdit.setText(texto);
+                    holder.ctdContadaEdit.setSelection(texto.length());
+                    return;
+                }
 
+                try {
+                    if (texto.isEmpty()) {
+                        // Si el campo está vacío, establecer 0 como valor predeterminado
+                        double nuevaCantidad = 0;
+                        holder.ctdContadaEdit.setText("0");
+                        holder.ctdContadaEdit.setSelection(1);
+
+                        // Buscar el artículo en la lista filtrada por su ID único
+                        for (ArticuloDomain articulo : articuloListFiltrada) {
+                            if (articulo.getInventariosArtID() == holder.inventariosArtID) {
+                                if (articulo.getCtdContada() != nuevaCantidad) {
+                                    articulo.setCtdContada(nuevaCantidad);
+                                    updateCtdContadaEnBD(articulo.getInventariosArtID(), nuevaCantidad);
+                                }
+                                break;
+                            }
+                        }
+                    } else {
+                        // Convertir a double y validar que no sea negativo
+                        double nuevaCantidad = Double.parseDouble(texto);
+                        if (nuevaCantidad < 0) {
+                            nuevaCantidad = 0;
+                            holder.ctdContadaEdit.setText("0");
+                            holder.ctdContadaEdit.setSelection(1);
+                            // Mostrar mensaje al usuario
+                            Toast.makeText(context, "Valor inválido, no puede ingresar negativos", Toast.LENGTH_SHORT).show();
+                        }
+
+                        // Buscar el artículo en la lista filtrada por su ID único
+                        for (ArticuloDomain articulo : articuloListFiltrada) {
+                            if (articulo.getInventariosArtID() == holder.inventariosArtID) {
+                                if (articulo.getCtdContada() != nuevaCantidad) {
+                                    articulo.setCtdContada(nuevaCantidad);
+                                    updateCtdContadaEnBD(articulo.getInventariosArtID(), nuevaCantidad);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    // Si hay un error al convertir (formato inválido), establecer 0
+                    holder.ctdContadaEdit.setText("0");
+                    holder.ctdContadaEdit.setSelection(1);
+                    
                     // Buscar el artículo en la lista filtrada por su ID único
                     for (ArticuloDomain articulo : articuloListFiltrada) {
                         if (articulo.getInventariosArtID() == holder.inventariosArtID) {
-                            if (articulo.getCtdContada() != nuevaCantidad) {
-                                articulo.setCtdContada(nuevaCantidad);
-                                updateCtdContadaEnBD(articulo.getInventariosArtID(), nuevaCantidad);
+                            if (articulo.getCtdContada() != 0) {
+                                articulo.setCtdContada(0);
+                                updateCtdContadaEnBD(articulo.getInventariosArtID(), 0);
                             }
                             break;
                         }
                     }
+                    Log.e("CONTEO_ERROR", "Error al convertir cantidad: " + e.getMessage());
                 }
             }
         };
@@ -101,16 +153,24 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
         // Botón para fijar el stock total
         holder.btnSetStock.setOnClickListener(v -> {
-            double stockTotal = item.getStockTotal();
-            holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
-
-            // Buscar el artículo en la lista filtrada por su ID único
-            for (ArticuloDomain articulo : articuloListFiltrada) {
-                if (articulo.getInventariosArtID() == holder.inventariosArtID) {
-                    articulo.setCtdContada(stockTotal);
-                    updateCtdContadaEnBD(articulo.getInventariosArtID(), stockTotal);
-                    break;
+            try {
+                double stockTotal = item.getStockTotal();
+                if (stockTotal < 0) {
+                    stockTotal = 0; // Asegurarse de que stockTotal no sea negativo
                 }
+                holder.ctdContadaEdit.setText(String.valueOf(stockTotal));
+                holder.ctdContadaEdit.setSelection(holder.ctdContadaEdit.getText().length());
+
+                // Buscar el artículo en la lista filtrada por su ID único
+                for (ArticuloDomain articulo : articuloListFiltrada) {
+                    if (articulo.getInventariosArtID() == holder.inventariosArtID) {
+                        articulo.setCtdContada(stockTotal);
+                        updateCtdContadaEnBD(articulo.getInventariosArtID(), stockTotal);
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                Log.e("CONTEO_ERROR", "Error al fijar stock: " + e.getMessage());
             }
         });
     }

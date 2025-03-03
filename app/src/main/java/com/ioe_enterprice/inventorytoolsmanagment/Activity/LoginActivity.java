@@ -99,7 +99,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 if (resultSet.next()) {
                     int usuarioID = resultSet.getInt("usuarioID");
-                    String nombre = resultSet.getString("nombre");
+                    String nombre = resultSet.getString("nombreUsuario");
                     String email = resultSet.getString("emailUsuario");
                     String puesto = resultSet.getString("puesto");
                     String departamento = resultSet.getString("departamento");
