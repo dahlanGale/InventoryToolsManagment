@@ -84,7 +84,13 @@ public class LoginActivity extends AppCompatActivity {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-                String query = "SELECT usuarioID, nombre, email, rol FROM tbUsuarios WHERE usuario = ? AND passwordUser = ?";
+                // Query modificada para obtener información de usuario incluyendo puesto y departamento
+                String query = "SELECT u.usuarioID, u.nombre, u.emailUsuario, p.descripcion as puesto, d.nombDepartamento as departamento " +
+                              "FROM tbUsuarios u " +
+                              "LEFT JOIN tbPuestoDepartamento p ON u.puesDepartID = p.puesDepartID " +
+                              "LEFT JOIN tbDepartmento d ON p.deptoId = d.departamentoID " +
+                              "WHERE u.usuario = ? AND u.passwordUser = ?";
+                
                 statement = connection.prepareStatement(query);
                 statement.setString(1, username);
                 statement.setString(2, password);
@@ -94,8 +100,12 @@ public class LoginActivity extends AppCompatActivity {
                 if (resultSet.next()) {
                     int usuarioID = resultSet.getInt("usuarioID");
                     String nombre = resultSet.getString("nombre");
-                    String email = resultSet.getString("email");
-                    String rol = resultSet.getString("rol");
+                    String email = resultSet.getString("emailUsuario");
+                    String puesto = resultSet.getString("puesto");
+                    String departamento = resultSet.getString("departamento");
+                    
+                    // Combinamos puesto y departamento para formar el rol
+                    String rol = puesto + " - " + departamento;
 
                     // Guardar los datos del usuario y el estado de "Recuérdame"
                     sessionManager.saveUserID(usuarioID);
@@ -120,7 +130,7 @@ public class LoginActivity extends AppCompatActivity {
             } catch (Exception e) {
                 Log.e("DB_ERROR", "Error al conectar a la base de datos", e);
                 runOnUiThread(() -> {
-                    tvError.setText("Error al conectar a la base de datos");
+                    tvError.setText("Error al conectar a la base de datos: " + e.getMessage());
                     tvError.setVisibility(View.VISIBLE);
                 });
             } finally {
