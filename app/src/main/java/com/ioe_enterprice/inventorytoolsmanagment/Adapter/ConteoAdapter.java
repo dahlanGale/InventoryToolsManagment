@@ -59,6 +59,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
         // Mostrar los datos en los campos
         holder.skuTxt.setText("Sku: " + item.getSKU());
+        holder.upcTxt.setText("UPC: " + item.getUPC());
         holder.almacenTxt.setText("Almacén: " + item.getAlmacenDescripcion());
         holder.descripcionTxt.setText(item.getDescripcion());
         holder.ctdContadaEdit.setText(String.valueOf(item.getCtdContada()));
@@ -227,7 +228,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
     // ViewHolder
     public static class ConteoViewHolder extends RecyclerView.ViewHolder {
-        TextView skuTxt, almacenTxt, descripcionTxt, stockTotalTxt;
+        TextView skuTxt, upcTxt, almacenTxt, descripcionTxt, stockTotalTxt;
         EditText ctdContadaEdit;
         Button btnSetStock;
         int inventariosArtID; // Variable para almacenar el ID único
@@ -235,6 +236,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
         public ConteoViewHolder(@NonNull View itemView) {
             super(itemView);
             skuTxt = itemView.findViewById(R.id.skuTxt);
+            upcTxt = itemView.findViewById(R.id.upcTxt);
             almacenTxt = itemView.findViewById(R.id.almacenTxt);
             descripcionTxt = itemView.findViewById(R.id.descripcionTxt);
             stockTotalTxt = itemView.findViewById(R.id.stockTotalTxt);

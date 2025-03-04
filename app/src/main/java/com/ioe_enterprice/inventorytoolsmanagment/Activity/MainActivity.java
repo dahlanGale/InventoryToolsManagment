@@ -142,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
                         "cb.inventarioFolio, " +
                         "CONVERT(VARCHAR, cb.fechaInventario, 120) AS fechaInventario, " +
                         "CASE WHEN cb.tipoInventario = 'ARTICULO' THEN 'ongoing3' ELSE 'ongoing4' END AS picPath, " +
-                        "ROUND(CAST(COUNT(CASE WHEN dt.ctdContada > 0 THEN 1 END) AS FLOAT) / COUNT(*) * 100, 0) AS progressPercent " +
+                        "ROUND(CAST(COUNT(CASE WHEN dt.ctdContada > -1 THEN 1 END) AS FLOAT) / COUNT(*) * 100, 0) AS progressPercent " +
                         "FROM cbInventarios cb " +
                         "LEFT JOIN dtInventariosArticulos dt ON cb.inventarioDocID = dt.inventarioDocID " +
                         "WHERE cb.estatus = 'ABIERTO' " +

@@ -3,95 +3,107 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
+    android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    android:background="@drawable/light_background">
+    android:background="@drawable/light_background"
+    android:paddingBottom="8dp">
 
-    <!-- SKU -->
+    <!-- SKU and UPC in the same line -->
     <TextView
         android:id="@+id/skuTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="SKU: 900002849"
+        android:text="SKU: 30000254"
         android:textColor="@color/dark_blue"
         android:textSize="14sp"
-
         android:textStyle="bold"
-        app:layout_constraintHorizontal_weight="2"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Almacén -->
     <TextView
-        android:id="@+id/almacenTxt"
-        android:layout_width="160dp"
-        android:layout_height="16dp"
+        android:id="@+id/upcTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:text="Almacen: Piso de Venta"
-        android:textColor="@color/black"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@+id/skuTxt"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Stock Total (Ahora está en la parte superior, más compacto) -->
-    <TextView
-        android:id="@+id/stockTotalTxt"
-        android:layout_width="80dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:gravity="center"
-        android:text="Stock: 9999"
+        android:text="UPC: 700000000254"
         android:textColor="@color/dark_blue"
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/skuTxt"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Cantidad Contada (Editable) -->
+    <!-- Almacén and Stock in the same line -->
     <TextView
-        android:id="@+id/descripcionTxt"
+        android:id="@+id/almacenTxt"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:text="Descripción del producto"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Almacen: BODEGA VERACRUZ"
+        android:textColor="@color/black"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/ctdContadaEdit"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/skuTxt" />
 
+    <TextView
+        android:id="@+id/stockTotalTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="Stock: 30.0"
+        android:textColor="@color/dark_blue"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:layout_constraintBaseline_toBaselineOf="@+id/almacenTxt"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/almacenTxt" />
+
+    <!-- Product description with line break support -->
+    <TextView
+        android:id="@+id/descripcionTxt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="FOTO BLUE RAY AZUL SPH -0.00 CYL -0.00"
+        android:textSize="14sp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/almacenTxt" />
+
+    <!-- Cantidad Contada (Editable) and Button in the bottom row -->
     <EditText
         android:id="@+id/ctdContadaEdit"
-        android:layout_width="80dp"
+        android:layout_width="0dp"
         android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
         android:gravity="center"
         android:hint="0.0"
         android:inputType="numberDecimal"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btnSetStock" />
+        app:layout_constraintEnd_toStartOf="@id/btnSetStock"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/descripcionTxt" />
 
-    <!-- Botón para fijar cantidad de stock (ahora en la esquina inferior derecha) -->
     <Button
         android:id="@+id/btnSetStock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
         android:padding="4dp"
         android:text="Fijar"
         android:textSize="12sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@+id/ctdContadaEdit"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
