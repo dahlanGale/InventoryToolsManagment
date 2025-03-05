@@ -105,12 +105,22 @@ public class ConteoActivity extends AppCompatActivity {
                 List<ArticuloDomain> tempList = new ArrayList<>();
 
                 while (resultSet.next()) {
+                    // Verificar explícitamente si ctdContada es NULL en la base de datos
+                    Double ctdContada = null;
+                    Object ctdContadaObj = resultSet.getObject("ctdContada");
+                    if (ctdContadaObj != null) {
+                        ctdContada = resultSet.getDouble("ctdContada");
+                        Log.d("DB_LOAD", "ctdContada cargado: " + ctdContada + " para artículo: " + resultSet.getInt("inventariosArtID"));
+                    } else {
+                        Log.d("DB_LOAD", "ctdContada NULL para artículo: " + resultSet.getInt("inventariosArtID"));
+                    }
+                    
                     ArticuloDomain articulo = new ArticuloDomain(
                             resultSet.getInt("inventariosArtID"),
                             resultSet.getInt("SKU"),
                             resultSet.getLong("UPC"),
                             resultSet.getString("descripcionCorta"),
-                            resultSet.getObject("ctdContada") != null ? resultSet.getDouble("ctdContada") : null,
+                            ctdContada, // Usar nuestro valor verificado
                             resultSet.getDouble("stockTotal"),
                             resultSet.getInt("ubicacionID"),
                             resultSet.getInt("usuarioID"),

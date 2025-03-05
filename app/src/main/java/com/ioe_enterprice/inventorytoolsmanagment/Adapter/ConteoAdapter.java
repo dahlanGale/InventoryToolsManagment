@@ -96,12 +96,15 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                 try {
                     if (texto.isEmpty()) {
                         // Si el campo está vacío, permitir que quede vacío (null)
+                        Log.d("CONTEO_DEBUG", "Campo vacío detectado para inventariosArtID: " + holder.inventariosArtID);
                         
                         // Buscar el artículo en la lista filtrada por su ID único
                         for (ArticuloDomain articulo : articuloListFiltrada) {
                             if (articulo.getInventariosArtID() == holder.inventariosArtID) {
                                 // Asegurar que se actualiza correctamente a null
                                 articulo.setCtdContada(null);
+                                // Imprimir el valor después de actualizar
+                                Log.d("CONTEO_DEBUG", "Artículo actualizado a null, valor actual: " + articulo.getCtdContada());
                                 updateCtdContadaEnBD(articulo.getInventariosArtID(), null);
                                 break;
                             }
@@ -259,13 +262,20 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                         "UPDATE dtInventariosArticulos SET ctdContada = ?, usuarioID = ?, fechaConteo = CURRENT_TIMESTAMP WHERE inventariosArtID = ?");
                 if (nuevaCantidad == null) {
                     statement.setNull(1, java.sql.Types.DOUBLE);
+                    // Log para verificar que se está enviando NULL a la base de datos
+                    Log.d("DB_UPDATE", "Enviando NULL a la base de datos para inventariosArtID: " + inventariosArtID);
                 } else {
                     statement.setDouble(1, nuevaCantidad);
+                    // Log para verificar el valor que se está enviando
+                    Log.d("DB_UPDATE", "Enviando valor: " + nuevaCantidad + " a la base de datos para inventariosArtID: " + inventariosArtID);
                 }
                 statement.setInt(2, usuarioID);
                 statement.setInt(3, inventariosArtID);
 
-                statement.executeUpdate();
+                int rowsAffected = statement.executeUpdate();
+                // Log para verificar que la actualización se completó correctamente
+                Log.d("DB_UPDATE", "Filas afectadas: " + rowsAffected);
+                
                 statement.close();
                 connection.close();
             } catch (Exception e) {
