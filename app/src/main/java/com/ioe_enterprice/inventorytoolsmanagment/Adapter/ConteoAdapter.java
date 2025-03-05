@@ -52,17 +52,21 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
     @Override
     public void onBindViewHolder(@NonNull ConteoViewHolder holder, int position) {
-        ArticuloDomain item = articuloListFiltrada.get(position); // Obtener el artículo de la lista filtrada
-
-        // Asignar el ID único al ViewHolder
+        ArticuloDomain item = articuloListFiltrada.get(position);
         holder.inventariosArtID = item.getInventariosArtID();
-
-        // Mostrar los datos en los campos
+        
         holder.skuTxt.setText("Sku: " + item.getSKU());
         holder.upcTxt.setText("UPC: " + item.getUPC());
         holder.almacenTxt.setText("Almacén: " + item.getAlmacenDescripcion());
         holder.descripcionTxt.setText(item.getDescripcion());
-        holder.ctdContadaEdit.setText(String.valueOf(item.getCtdContada()));
+        
+        // Manejar valores nulos en ctdContada
+        if (item.getCtdContada() != null) {
+            holder.ctdContadaEdit.setText(String.valueOf(item.getCtdContada()));
+        } else {
+            holder.ctdContadaEdit.setText("");
+        }
+        
         holder.stockTotalTxt.setText("Stock: " + item.getStockTotal());
 
         // Limpiar el TextWatcher anterior para evitar duplicados
@@ -91,18 +95,13 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
                 try {
                     if (texto.isEmpty()) {
-                        // Si el campo está vacío, establecer 0 como valor predeterminado
-                        double nuevaCantidad = 0;
-                        holder.ctdContadaEdit.setText("0");
-                        holder.ctdContadaEdit.setSelection(1);
-
+                        // Si el campo está vacío, permitir que quede vacío (null)
+                        
                         // Buscar el artículo en la lista filtrada por su ID único
                         for (ArticuloDomain articulo : articuloListFiltrada) {
                             if (articulo.getInventariosArtID() == holder.inventariosArtID) {
-                                if (articulo.getCtdContada() != nuevaCantidad) {
-                                    articulo.setCtdContada(nuevaCantidad);
-                                    updateCtdContadaEnBD(articulo.getInventariosArtID(), nuevaCantidad);
-                                }
+                                articulo.setCtdContada(null);
+                                updateCtdContadaEnBD(articulo.getInventariosArtID(), null);
                                 break;
                             }
                         }
@@ -120,7 +119,9 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                         // Buscar el artículo en la lista filtrada por su ID único
                         for (ArticuloDomain articulo : articuloListFiltrada) {
                             if (articulo.getInventariosArtID() == holder.inventariosArtID) {
-                                if (articulo.getCtdContada() != nuevaCantidad) {
+                                Double valorActual = articulo.getCtdContada();
+                                // Comparar valores considerando nulos
+                                if (valorActual == null || valorActual != nuevaCantidad) {
                                     articulo.setCtdContada(nuevaCantidad);
                                     updateCtdContadaEnBD(articulo.getInventariosArtID(), nuevaCantidad);
                                 }
@@ -129,17 +130,14 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                         }
                     }
                 } catch (NumberFormatException e) {
-                    // Si hay un error al convertir (formato inválido), establecer 0
-                    holder.ctdContadaEdit.setText("0");
-                    holder.ctdContadaEdit.setSelection(1);
+                    // Si hay un error al convertir (formato inválido), establecer campo vacío
+                    holder.ctdContadaEdit.setText("");
                     
                     // Buscar el artículo en la lista filtrada por su ID único
                     for (ArticuloDomain articulo : articuloListFiltrada) {
                         if (articulo.getInventariosArtID() == holder.inventariosArtID) {
-                            if (articulo.getCtdContada() != 0) {
-                                articulo.setCtdContada(0);
-                                updateCtdContadaEnBD(articulo.getInventariosArtID(), 0);
-                            }
+                            articulo.setCtdContada(null);
+                            updateCtdContadaEnBD(articulo.getInventariosArtID(), null);
                             break;
                         }
                     }
@@ -246,7 +244,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     }
 
     // Método para actualizar la cantidad contada en la base de datos
-    private void updateCtdContadaEnBD(int inventariosArtID, double nuevaCantidad) {
+    private void updateCtdContadaEnBD(int inventariosArtID, Double nuevaCantidad) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.submit(() -> {
             try {
@@ -258,7 +256,11 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
 
                 PreparedStatement statement = connection.prepareStatement(
                         "UPDATE dtInventariosArticulos SET ctdContada = ?, usuarioID = ?, fechaConteo = CURRENT_TIMESTAMP WHERE inventariosArtID = ?");
-                statement.setDouble(1, nuevaCantidad);
+                if (nuevaCantidad == null) {
+                    statement.setNull(1, java.sql.Types.DOUBLE);
+                } else {
+                    statement.setDouble(1, nuevaCantidad);
+                }
                 statement.setInt(2, usuarioID);
                 statement.setInt(3, inventariosArtID);
 

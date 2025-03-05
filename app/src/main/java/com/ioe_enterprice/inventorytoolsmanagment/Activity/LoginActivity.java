@@ -84,7 +84,7 @@ public class LoginActivity extends AppCompatActivity {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
-                // Query modificada para obtener información de usuario incluyendo puesto y departamento
+                // Query para obtener la información del usuario
                 String query = "SELECT u.usuarioID, u.nombreUsuario, u.emailUsuario, p.descripcion as puesto, d.nombDepartamento as departamento " +
                               "FROM tbUsuarios u " +
                               "LEFT JOIN tbPuestoDepartamento p ON u.puesDepartID = p.puesDepartID " +

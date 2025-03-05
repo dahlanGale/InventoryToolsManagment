@@ -110,7 +110,7 @@ public class ConteoActivity extends AppCompatActivity {
                             resultSet.getInt("SKU"),
                             resultSet.getLong("UPC"),
                             resultSet.getString("descripcionCorta"),
-                            resultSet.getDouble("ctdContada"),
+                            resultSet.getObject("ctdContada") != null ? resultSet.getDouble("ctdContada") : null,
                             resultSet.getDouble("stockTotal"),
                             resultSet.getInt("ubicacionID"),
                             resultSet.getInt("usuarioID"),
