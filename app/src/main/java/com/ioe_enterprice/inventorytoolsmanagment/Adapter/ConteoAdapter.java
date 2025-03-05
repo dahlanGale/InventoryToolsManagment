@@ -100,6 +100,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                         // Buscar el artículo en la lista filtrada por su ID único
                         for (ArticuloDomain articulo : articuloListFiltrada) {
                             if (articulo.getInventariosArtID() == holder.inventariosArtID) {
+                                // Asegurar que se actualiza correctamente a null
                                 articulo.setCtdContada(null);
                                 updateCtdContadaEnBD(articulo.getInventariosArtID(), null);
                                 break;
@@ -130,7 +131,7 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
                         }
                     }
                 } catch (NumberFormatException e) {
-                    // Si hay un error al convertir (formato inválido), establecer campo vacío
+                    // Si hay un error al convertir (formato inválido), establecer campo vacío y actualizar a null
                     holder.ctdContadaEdit.setText("");
                     
                     // Buscar el artículo en la lista filtrada por su ID único
