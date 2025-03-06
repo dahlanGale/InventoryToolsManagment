@@ -30,24 +30,44 @@
             android:padding="8dp">
         </LinearLayout>
     </HorizontalScrollView>
-
-    <!-- Barra de búsqueda -->
-    <EditText
-        android:id="@+id/et_Buscar"
+    
+    <!-- Contenedor para la búsqueda y el botón de escaneo -->
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="55dp"
+        android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/edittext_background"
-        android:drawableStart="@drawable/search"
-        android:drawablePadding="16dp"
-        android:ems="10"
-        android:hint="Buscar..."
-        android:inputType="text"
-        android:padding="16dp"
-        android:textColor="@color/dark_blue"
-        android:textColorHint="@color/dark_blue"
-        android:textSize="18sp" />
+        android:layout_marginBottom="16dp">
+
+        <!-- Barra de búsqueda -->
+        <EditText
+            android:id="@+id/et_Buscar"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_toLeftOf="@+id/btnEscanear"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/edittext_background"
+            android:drawableStart="@drawable/search"
+            android:drawablePadding="16dp"
+            android:ems="10"
+            android:hint="Buscar..."
+            android:inputType="text"
+            android:padding="16dp"
+            android:textColor="@color/dark_blue"
+            android:textColorHint="@color/dark_blue"
+            android:textSize="18sp" />
+            
+        <!-- Botón de escaneo -->
+        <ImageButton
+            android:id="@+id/btnEscanear"
+            android:layout_width="55dp"
+            android:layout_height="55dp"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/button_filter_background"
+            android:src="@drawable/barcode_scan"
+            android:padding="10dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="Escanear código de barras" />
+    </RelativeLayout>
 
     <!-- Lista de artículos -->
     <androidx.recyclerview.widget.RecyclerView

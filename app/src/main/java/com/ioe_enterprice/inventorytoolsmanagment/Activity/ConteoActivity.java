@@ -2,6 +2,7 @@ package com.ioe_enterprice.inventorytoolsmanagment.Activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -9,10 +10,16 @@ import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -41,6 +48,24 @@ public class ConteoActivity extends AppCompatActivity {
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
     private static final String DB_USER = "IOEMaster";
     private static final String DB_PASSWORD = "Master.2024";
+    private EditText etBuscar;
+    private static final int CAMERA_PERMISSION_REQUEST = 100;
+    
+    // Launcher para iniciar ScannerActivity y recibir su resultado
+    private final ActivityResultLauncher<Intent> scannerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    if (result.getData() != null) {
+                        String codigoBarras = result.getData().getStringExtra("CODIGO_BARRAS");
+                        if (codigoBarras != null && !codigoBarras.isEmpty()) {
+                            etBuscar.setText(codigoBarras);
+                            adapter.getFilter().filter(codigoBarras);
+                            Toast.makeText(ConteoActivity.this, "Código escaneado: " + codigoBarras, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +92,7 @@ public class ConteoActivity extends AppCompatActivity {
         }
 
         // Configurar el filtro de búsqueda
-        EditText etBuscar = findViewById(R.id.et_Buscar);
+        etBuscar = findViewById(R.id.et_Buscar);
         etBuscar.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
@@ -83,6 +108,40 @@ public class ConteoActivity extends AppCompatActivity {
 
         // Inicializar el contenedor de filtros de almacén
         containerFiltrosAlmacen = findViewById(R.id.containerFiltrosAlmacen);
+        
+        // Configurar el botón de escaneo
+        ImageButton btnEscanear = findViewById(R.id.btnEscanear);
+        btnEscanear.setOnClickListener(view -> {
+            // Comprobar si tenemos permiso de cámara
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                // Solicitar permiso si no lo tenemos
+                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
+            } else {
+                // Iniciar el escáner si tenemos permiso
+                startScanner();
+            }
+        });
+    }
+    
+    // Método para iniciar la actividad de escaneo
+    private void startScanner() {
+        Intent intent = new Intent(this, ScannerActivity.class);
+        scannerLauncher.launch(intent);
+    }
+    
+    // Manejo de respuesta de permisos
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso concedido, iniciar el escáner
+                startScanner();
+            } else {
+                // Permiso denegado, mostrar mensaje
+                Toast.makeText(this, "Se requiere permiso de cámara para escanear códigos de barras", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void loadInventarioDetalles(String inventarioFolio) {
