@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                         "FROM cbInventarios cb " +
                         "LEFT JOIN dtInventariosArticulos dt ON cb.inventarioDocID = dt.inventarioDocID " +
                         "WHERE cb.estatus = 'ABIERTO' " +
-                        "GROUP BY cb.inventarioFolio, cb.fechaInventario, cb.tipoInventario";
+                        "GROUP BY cb.fechaInventario, cb.tipoInventario";
 
                 ResultSet resultSet = statement.executeQuery(query);
                 List<OngoingDomain> tempList = new ArrayList<>();
