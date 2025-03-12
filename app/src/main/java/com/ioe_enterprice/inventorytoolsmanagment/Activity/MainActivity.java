@@ -138,15 +138,19 @@ public class MainActivity extends AppCompatActivity {
                 Statement statement = connection.createStatement();
 
                 // Carga los registros desde la base de datos
-                String query = "SELECT " +
+                String query = "SELECT TOP 10 " +
                         "cb.inventarioFolio, " +
                         "CONVERT(VARCHAR, cb.fechaInventario, 120) AS fechaInventario, " +
                         "CASE WHEN cb.tipoInventario = 'ARTICULO' THEN 'ongoing3' ELSE 'ongoing4' END AS picPath, " +
+                        "COUNT(CASE WHEN dt.ctdContada > -1 THEN 1 END) AS counted, " +
+                        "COUNT(*) AS total, " +
                         "ROUND(CAST(COUNT(CASE WHEN dt.ctdContada > -1 THEN 1 END) AS FLOAT) / COUNT(*) * 100, 0) AS progressPercent " +
                         "FROM cbInventarios cb " +
                         "LEFT JOIN dtInventariosArticulos dt ON cb.inventarioDocID = dt.inventarioDocID " +
                         "WHERE cb.estatus = 'ABIERTO' " +
-                        "GROUP BY cb.fechaInventario, cb.tipoInventario";
+                        "GROUP BY cb.inventarioFolio, cb.fechaInventario, cb.tipoInventario " +
+                        "ORDER BY cb.fechaInventario DESC";
+
 
                 ResultSet resultSet = statement.executeQuery(query);
                 List<OngoingDomain> tempList = new ArrayList<>();
@@ -156,7 +160,9 @@ public class MainActivity extends AppCompatActivity {
                             resultSet.getString("inventarioFolio"),
                             resultSet.getString("fechaInventario"),
                             resultSet.getInt("progressPercent"),
-                            resultSet.getString("picPath")
+                            resultSet.getString("picPath"),
+                            resultSet.getInt("counted"),
+                            resultSet.getInt("total")
                     ));
                 }
 
