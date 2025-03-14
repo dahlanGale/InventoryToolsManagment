@@ -75,6 +75,7 @@ public class OngoingAdapter extends RecyclerView.Adapter<OngoingAdapter.Viewhold
 
         holder.progressBar.setProgress(item.getProgressPercent());
         holder.countedValue.setText(item.getCounted() + "/" + item.getTotal());
+        holder.tipoConteo.setText(item.getTipoConteo());
 
         // Cambiar estilos según la posición (ya está en tu código)
         if (position == 0) {
@@ -113,7 +114,7 @@ public class OngoingAdapter extends RecyclerView.Adapter<OngoingAdapter.Viewhold
     }
 
     public class Viewholder extends RecyclerView.ViewHolder{
-        TextView tittle, date, progressBarPercent, progressTxt, countedLabel, countedValue;
+        TextView tittle, date, progressBarPercent, progressTxt, countedLabel, countedValue, tipoConteo;
         ProgressBar progressBar;
         ImageView pic;
         ConstraintLayout layout;
@@ -129,6 +130,8 @@ public class OngoingAdapter extends RecyclerView.Adapter<OngoingAdapter.Viewhold
             pic = itemView.findViewById(R.id.pic);
             countedLabel = itemView.findViewById(R.id.countedLabelTxt);
             countedValue = itemView.findViewById(R.id.countedValueTxt);
+            tipoConteo = itemView.findViewById(R.id.tipoConteo);
+
         }
     }
 }

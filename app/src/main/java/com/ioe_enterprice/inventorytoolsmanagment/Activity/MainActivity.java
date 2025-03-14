@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // Carga los registros desde la base de datos
                 String query = "SELECT TOP 10 " +
-                        "cb.inventarioFolio, " +
+                        "cb.inventarioFolio, cb.tipoInventario," +
                         "CONVERT(VARCHAR, cb.fechaInventario, 120) AS fechaInventario, " +
                         "CASE WHEN cb.tipoInventario = 'ARTICULO' THEN 'ongoing3' ELSE 'ongoing4' END AS picPath, " +
                         "COUNT(CASE WHEN dt.ctdContada > -1 THEN 1 END) AS counted, " +
@@ -151,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
                         "GROUP BY cb.inventarioFolio, cb.fechaInventario, cb.tipoInventario " +
                         "ORDER BY cb.fechaInventario DESC";
 
-
                 ResultSet resultSet = statement.executeQuery(query);
                 List<OngoingDomain> tempList = new ArrayList<>();
 
@@ -162,7 +161,8 @@ public class MainActivity extends AppCompatActivity {
                             resultSet.getInt("progressPercent"),
                             resultSet.getString("picPath"),
                             resultSet.getInt("counted"),
-                            resultSet.getInt("total")
+                            resultSet.getInt("total"),
+                            resultSet.getString("tipoInventario")
                     ));
                 }
 

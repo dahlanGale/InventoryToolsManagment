@@ -80,6 +80,8 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
         holder.percentTxt.setText(item.getProgressPercent() + "%");
         holder.countedLabelTxt.setText("Articulos contados:");
         holder.countedValueTxt.setText(item.getCounted() + "/" + item.getTotal());
+        holder.tipoConteo.setText(item.getTipoConteo());
+
 
         int imageResId = holder.itemView.getContext().getResources().getIdentifier(
                 item.getPicPath(), "drawable", holder.itemView.getContext().getPackageName());
@@ -100,7 +102,7 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
     }
 
     public static class InventoryViewHolder extends RecyclerView.ViewHolder {
-        TextView dateTxt, titleTxt, progressTxt, percentTxt, countedLabelTxt, countedValueTxt;
+        TextView dateTxt, titleTxt, progressTxt, percentTxt, countedLabelTxt, countedValueTxt, tipoConteo;
         ProgressBar progressBar;
         ImageView pic;
 
@@ -114,6 +116,7 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
             pic = itemView.findViewById(R.id.pic);
             countedLabelTxt = itemView.findViewById(R.id.countedLabelTxt);
             countedValueTxt = itemView.findViewById(R.id.countedValueTxt);
+            tipoConteo = itemView.findViewById(R.id.tipoConteo);
         }
     }
 }

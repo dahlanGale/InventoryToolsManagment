@@ -3,18 +3,21 @@ package com.ioe_enterprice.inventorytoolsmanagment.Domain;
 public class OngoingDomain {
     private String title;
     private String date;
+    private String tipoConteo;
     private int progressPercent;
     private int counted;
     private int total;
     private String picPath;
 
-    public OngoingDomain(String title, String date, int progressPercent, String picPath, int counted, int total) {
+    public OngoingDomain(String title, String date, int progressPercent, String picPath, int counted, int total, String tipoConteo) {
         this.title = title;
         this.date = date;
         this.progressPercent = progressPercent;
         this.picPath = picPath;
         this.counted = counted;
         this.total = total;
+        this.tipoConteo = tipoConteo;
+
     }
 
     public String getTitle() { return title; }
@@ -29,4 +32,7 @@ public class OngoingDomain {
     public void setCounted(int counted) { this.counted = counted; }
     public String getPicPath() { return picPath; }
     public void setPicPath(String picPath) { this.picPath = picPath; }
+    public String getTipoConteo() { return tipoConteo; }
+    public void setTipoConteo(String tipoConteo) { this.tipoConteo = tipoConteo; }
+
 }
