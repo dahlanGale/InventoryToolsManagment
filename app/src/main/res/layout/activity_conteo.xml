@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp">
 
@@ -20,15 +21,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="4dp">
 
         <LinearLayout
             android:id="@+id/containerFiltrosAlmacen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="8dp">
-        </LinearLayout>
+            android:padding="8dp"></LinearLayout>
     </HorizontalScrollView>
     
     <!-- Contenedor para la búsqueda y el botón de escaneo -->
@@ -36,15 +36,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="0dp">
 
         <!-- Barra de búsqueda -->
         <EditText
             android:id="@+id/et_Buscar"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:layout_toLeftOf="@+id/btnEscanear"
             android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@+id/btnEscanear"
             android:background="@drawable/edittext_background"
             android:drawableStart="@drawable/search"
             android:drawablePadding="16dp"
@@ -55,7 +55,7 @@
             android:textColor="@color/dark_blue"
             android:textColorHint="@color/dark_blue"
             android:textSize="18sp" />
-            
+
         <!-- Botón de escaneo -->
         <ImageButton
             android:id="@+id/btnEscanear"
@@ -63,11 +63,26 @@
             android:layout_height="55dp"
             android:layout_alignParentRight="true"
             android:background="@drawable/button_filter_background"
-            android:src="@drawable/barcode_scan"
+            android:contentDescription="Escanear código de barras"
             android:padding="10dp"
             android:scaleType="fitCenter"
-            android:contentDescription="Escanear código de barras" />
+            android:src="@drawable/barcode_scan"
+            app:tint="@color/dark_blue" />
     </RelativeLayout>
+
+    <!-- Botón para agregar artículos (solo visible cuando tipoConteo es ARTICULOS) -->
+    <Button
+        android:id="@+id/btnAgregarArticulos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:drawablePadding="8dp"
+        android:padding="10dp"
+        android:text="Agregar Artículos"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
     <!-- Lista de artículos -->
     <androidx.recyclerview.widget.RecyclerView
