@@ -104,6 +104,7 @@ public class OngoingAdapter extends RecyclerView.Adapter<OngoingAdapter.Viewhold
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(holder.itemView.getContext(), ConteoActivity.class);
             intent.putExtra("INVENTARIO_FOLIO", item.getTitle()); // Enviar folio
+            intent.putExtra("TIPO_CONTEO", item.getTipoConteo()); // Enviar tipo de conteo
             holder.itemView.getContext().startActivity(intent);
         });
     }
@@ -131,7 +132,6 @@ public class OngoingAdapter extends RecyclerView.Adapter<OngoingAdapter.Viewhold
             countedLabel = itemView.findViewById(R.id.countedLabelTxt);
             countedValue = itemView.findViewById(R.id.countedValueTxt);
             tipoConteo = itemView.findViewById(R.id.tipoConteo);
-
         }
     }
 }

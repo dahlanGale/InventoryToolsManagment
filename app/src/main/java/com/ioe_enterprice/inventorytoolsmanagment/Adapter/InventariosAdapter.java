@@ -91,6 +91,7 @@ public class InventariosAdapter extends RecyclerView.Adapter<InventariosAdapter.
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(holder.itemView.getContext(), ConteoActivity.class);
             intent.putExtra("INVENTARIO_FOLIO", item.getTitle()); // Pasar el folio del inventario
+            intent.putExtra("TIPO_CONTEO", item.getTipoConteo()); // Pasar el tipo de conteo
             holder.itemView.getContext().startActivity(intent);
         });
     }

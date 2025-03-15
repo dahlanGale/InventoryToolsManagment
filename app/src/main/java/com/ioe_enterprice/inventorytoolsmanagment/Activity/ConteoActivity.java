@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
@@ -50,7 +51,9 @@ public class ConteoActivity extends AppCompatActivity {
     private static final String DB_PASSWORD = "Master.2024";
     private EditText etBuscar;
     private static final int CAMERA_PERMISSION_REQUEST = 100;
-    
+    private String tipoConteo;
+    private Button btnAgregarArticulos;
+
     // Launcher para iniciar ScannerActivity y recibir su resultado
     private final ActivityResultLauncher<Intent> scannerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -83,12 +86,29 @@ public class ConteoActivity extends AppCompatActivity {
         adapter = new ConteoAdapter(articuloList, this);
         recyclerView.setAdapter(adapter);
 
+        // Inicializar el botón btnAgregarArticulos
+        btnAgregarArticulos = findViewById(R.id.btnAgregarArticulos);
+        
+        // Configurar el clic del botón Agregar Artículos
+        btnAgregarArticulos.setOnClickListener(v -> {
+            // Aquí irá el código para agregar artículos
+            Toast.makeText(ConteoActivity.this, "Función de agregar artículos en desarrollo", Toast.LENGTH_SHORT).show();
+        });
+
         // Obtener el folio del inventario
         String inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
         if (inventarioFolio != null) {
             loadInventarioDetalles(inventarioFolio);
         } else {
             Log.e("ConteoActivity", "Error: No se recibió INVENTARIO_FOLIO");
+        }
+
+        String tipoConteo = getIntent().getStringExtra("TIPO_CONTEO");
+        if (tipoConteo != null) {
+            tipoConteo(tipoConteo);
+        }
+        else {
+            Log.e("ConteoActivity", "Error: No se recibió TIPO_CONTEO");
         }
 
         // Configurar el filtro de búsqueda
@@ -272,8 +292,20 @@ public class ConteoActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         Intent resultIntent = new Intent();
         setResult(Activity.RESULT_OK, resultIntent); // Indicar que hay datos actualizados
         finish(); // Cerrar la actividad y regresar al MainActivity
+    }
+
+    private void tipoConteo(String tipoConteo) {
+        this.tipoConteo = tipoConteo;
+
+        // Configurar el adaptador para el tipo de conteo
+        if (tipoConteo.equals("ARTICULO")) {
+            btnAgregarArticulos.setVisibility(View.VISIBLE);
+        } else {
+            btnAgregarArticulos.setVisibility(View.GONE);
+        }
     }
 }
