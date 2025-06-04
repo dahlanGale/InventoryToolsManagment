@@ -53,6 +53,8 @@ public class ConteoActivity extends AppCompatActivity {
     private static final int CAMERA_PERMISSION_REQUEST = 100;
     private String tipoConteo;
     private Button btnAgregarArticulos;
+    private String inventarioFolio; // Para almacenar el folio del inventario
+    private static final int REQUEST_AGREGAR_ARTICULO = 1001;
 
     // Launcher para iniciar ScannerActivity y recibir su resultado
     private final ActivityResultLauncher<Intent> scannerLauncher = registerForActivityResult(
@@ -91,12 +93,13 @@ public class ConteoActivity extends AppCompatActivity {
         
         // Configurar el clic del botón Agregar Artículos
         btnAgregarArticulos.setOnClickListener(v -> {
-            // Aquí irá el código para agregar artículos
-            Toast.makeText(ConteoActivity.this, "Función de agregar artículos en desarrollo", Toast.LENGTH_SHORT).show();
+            // Iniciar el diálogo para agregar artículos
+            Intent intent = new Intent(this, com.ioe_enterprice.inventorytoolsmanagment.Utils.dialog_agregar_articulos.class);
+            startActivityForResult(intent, REQUEST_AGREGAR_ARTICULO);
         });
 
         // Obtener el folio del inventario
-        String inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
+        inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
         if (inventarioFolio != null) {
             loadInventarioDetalles(inventarioFolio);
         } else {
@@ -307,5 +310,118 @@ public class ConteoActivity extends AppCompatActivity {
         } else {
             btnAgregarArticulos.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        
+        if (requestCode == REQUEST_AGREGAR_ARTICULO && resultCode == Activity.RESULT_OK) {
+            // Procesar el resultado del diálogo de agregar artículos
+            if (data != null) {
+                int sku = data.getIntExtra("SKU", 0);
+                long upc = data.getLongExtra("UPC", 0);
+                String descripcion = data.getStringExtra("DESCRIPCION");
+                Double cantidad = data.getDoubleExtra("CANTIDAD", 0.0);
+                String almacen = data.getStringExtra("ALMACEN");
+                
+                // Crear un nuevo ArticuloDomain con los datos recibidos
+                ArticuloDomain nuevoArticulo = new ArticuloDomain(
+                        0, // inventariosArtID temporal (se asignará en la base de datos)
+                        sku,
+                        upc,
+                        descripcion,
+                        cantidad,
+                        0, // stockTotal (se actualizará según la base de datos)
+                        0, // ubicacionID (se asignará en la base de datos)
+                        0, // usuarioID (se obtendrá del usuario actual)
+                        almacen
+                );
+                
+                // Agregar el nuevo artículo a la base de datos
+                agregarArticuloABaseDeDatos(nuevoArticulo);
+            }
+        }
+    }
+    
+    private void agregarArticuloABaseDeDatos(ArticuloDomain articulo) {
+        // Mostrar mensaje de carga
+        Toast.makeText(this, "Agregando artículo...", Toast.LENGTH_SHORT).show();
+        
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.submit(() -> {
+            try {
+                Class.forName("net.sourceforge.jtds.jdbc.Driver");
+                Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+                
+                // Primero obtener el inventarioDocID usando el folio
+                PreparedStatement getInventarioIdStatement = connection.prepareStatement(
+                        "SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?");
+                getInventarioIdStatement.setString(1, inventarioFolio);
+                ResultSet inventarioIdResult = getInventarioIdStatement.executeQuery();
+                
+                int inventarioDocID = 0;
+                if (inventarioIdResult.next()) {
+                    inventarioDocID = inventarioIdResult.getInt("inventarioDocID");
+                } else {
+                    runOnUiThread(() -> Toast.makeText(ConteoActivity.this, 
+                            "Error: No se encontró el ID del inventario", Toast.LENGTH_LONG).show());
+                    return;
+                }
+                
+                // Verificar si el artículo ya existe en el inventario
+                PreparedStatement checkArticuloStatement = connection.prepareStatement(
+                        "SELECT inventariosArtID FROM dtInventariosArticulos WHERE inventarioDocID = ? AND SKU = ?");
+                checkArticuloStatement.setInt(1, inventarioDocID);
+                checkArticuloStatement.setInt(2, articulo.getSKU());
+                ResultSet checkResult = checkArticuloStatement.executeQuery();
+                
+                if (checkResult.next()) {
+                    // El artículo ya existe, mostrar mensaje
+                    runOnUiThread(() -> Toast.makeText(ConteoActivity.this, 
+                            "El artículo con SKU " + articulo.getSKU() + " ya existe en este inventario", 
+                            Toast.LENGTH_LONG).show());
+                } else {
+                    // Insertar el nuevo artículo
+                    PreparedStatement insertStatement = connection.prepareStatement(
+                            "INSERT INTO dtInventariosArticulos (inventarioDocID, SKU, UPC, descripcionCorta, ctdContada) " +
+                                    "VALUES (?, ?, ?, ?, ?)");
+                    insertStatement.setInt(1, inventarioDocID);
+                    insertStatement.setInt(2, articulo.getSKU());
+                    insertStatement.setLong(3, articulo.getUPC());
+                    insertStatement.setString(4, articulo.getDescripcion());
+                    insertStatement.setDouble(5, articulo.getCtdContada());
+                    
+                    int rowsAffected = insertStatement.executeUpdate();
+                    
+                    if (rowsAffected > 0) {
+                        // Éxito, refrescar la lista
+                        runOnUiThread(() -> {
+                            Toast.makeText(ConteoActivity.this, 
+                                    "Artículo agregado correctamente", Toast.LENGTH_SHORT).show();
+                            // Recargar los detalles del inventario para mostrar el nuevo artículo
+                            loadInventarioDetalles(inventarioFolio);
+                        });
+                    } else {
+                        runOnUiThread(() -> Toast.makeText(ConteoActivity.this, 
+                                "No se pudo agregar el artículo", Toast.LENGTH_LONG).show());
+                    }
+                    
+                    insertStatement.close();
+                }
+                
+                checkResult.close();
+                checkArticuloStatement.close();
+                inventarioIdResult.close();
+                getInventarioIdStatement.close();
+                connection.close();
+                
+            } catch (Exception e) {
+                Log.e("DB_ERROR", "Error al agregar artículo a la base de datos", e);
+                runOnUiThread(() -> Toast.makeText(ConteoActivity.this, 
+                        "Error al agregar artículo: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        });
+        executor.shutdown();
     }
 }

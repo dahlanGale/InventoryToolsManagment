@@ -4,7 +4,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -17,10 +20,14 @@
         android:theme="@style/Theme.InventoryToolsManagment"
         tools:targetApi="31">
         <activity
+            android:name=".Utils.dialog_agregar_articulos"
+            android:exported="false" />
+        <activity
             android:name=".Activity.SplashScreenActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -32,8 +39,7 @@
             android:exported="false" />
         <activity
             android:name=".Activity.LoginActivity"
-            android:exported="true">
-        </activity>
+            android:exported="true"></activity>
         <activity
             android:name=".Activity.ProfileActivity"
             android:exported="false" />
