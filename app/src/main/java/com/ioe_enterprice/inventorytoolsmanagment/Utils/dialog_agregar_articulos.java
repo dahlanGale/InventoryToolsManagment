@@ -22,7 +22,7 @@ import com.google.zxing.integration.android.IntentResult;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.AlmacenDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.ArticuloDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
-import com.ioe_enterprice.inventorytoolsmanagment.SessionManager.SessionManager;
+import com.ioe_enterprice.inventorytoolsmanagment.Utils.SessionManager;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
