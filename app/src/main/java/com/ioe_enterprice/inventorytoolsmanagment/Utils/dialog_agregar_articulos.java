@@ -147,10 +147,13 @@ public class dialog_agregar_articulos extends AppCompatActivity {
     private void cargarAlmacenes() {
         int sucursalID = sessionManager.getSucursalID();
         
+        Log.d("dialog_agregar_articulos", "Cargando almacenes. sucursalID: " + sucursalID);
+        
         if (sucursalID <= 0) {
-            Toast.makeText(this, "Error: No se encontró la sucursal del usuario", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+            // Mostrar una advertencia en lugar de un error fatal
+            Log.w("dialog_agregar_articulos", "Advertencia: No se encontró la sucursal del usuario. Se cargarán todos los almacenes disponibles.");
+            Toast.makeText(this, "Advertencia: No se pudo determinar su sucursal. Se mostrarán todos los almacenes disponibles.", Toast.LENGTH_LONG).show();
+            // Continuamos con la ejecución, cargaremos todos los almacenes sin filtrar por sucursalID
         }
         
         executorService.execute(() -> {
@@ -162,13 +165,24 @@ public class dialog_agregar_articulos extends AppCompatActivity {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
                 
-                String query = "SELECT a.almacenID, a.almacenDescripcion, u.ubicacionID " +
-                              "FROM tbAlmacen a " +
-                              "INNER JOIN tbUbicacion u ON a.almacenID = u.almacenID " +
-                              "WHERE a.status = 'A' AND a.sucursalID = ?";
+                String query;
+                if (sucursalID > 0) {
+                    // Consulta original filtrada por sucursal
+                    query = "SELECT a.almacenID, a.almacenDescripcion, u.ubicacionID " +
+                           "FROM tbAlmacen a " +
+                           "INNER JOIN tbUbicacion u ON a.almacenID = u.almacenID " +
+                           "WHERE a.status = 'A' AND a.sucursalID = ?";
+                    statement = connection.prepareStatement(query);
+                    statement.setInt(1, sucursalID);
+                } else {
+                    // Consulta para todos los almacenes activos sin filtrar por sucursal
+                    query = "SELECT a.almacenID, a.almacenDescripcion, u.ubicacionID " +
+                           "FROM tbAlmacen a " +
+                           "INNER JOIN tbUbicacion u ON a.almacenID = u.almacenID " +
+                           "WHERE a.status = 'A'";
+                    statement = connection.prepareStatement(query);
+                }
                 
-                statement = connection.prepareStatement(query);
-                statement.setInt(1, sucursalID);
                 resultSet = statement.executeQuery();
                 
                 listaAlmacenes.clear();
@@ -184,8 +198,8 @@ public class dialog_agregar_articulos extends AppCompatActivity {
                 runOnUiThread(() -> {
                     if (listaAlmacenes.isEmpty()) {
                         Toast.makeText(dialog_agregar_articulos.this, 
-                                "No se encontraron almacenes para la sucursal", Toast.LENGTH_SHORT).show();
-                        finish();
+                                "No se encontraron almacenes disponibles", Toast.LENGTH_SHORT).show();
+                        // No cerramos la actividad, dejamos que el usuario pueda intentar otra opción
                     } else {
                         // Crear adaptador para el spinner con la lista de almacenes
                         ArrayAdapter<AlmacenDomain> adapter = new ArrayAdapter<>(
@@ -202,7 +216,7 @@ public class dialog_agregar_articulos extends AppCompatActivity {
                     Toast.makeText(dialog_agregar_articulos.this, 
                             "Error al cargar almacenes: " + e.getMessage(), 
                             Toast.LENGTH_SHORT).show();
-                    finish();
+                    // No cerramos la actividad automáticamente
                 });
             } finally {
                 try {
