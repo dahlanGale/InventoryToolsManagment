@@ -85,7 +85,8 @@ public class LoginActivity extends AppCompatActivity {
                 connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
 
                 // Query para obtener la información del usuario
-                String query = "SELECT u.usuarioID, u.nombreUsuario, u.emailUsuario, p.descripcion as puesto, d.nombDepartamento as departamento " +
+                String query = "SELECT u.usuarioID, u.nombreUsuario, u.emailUsuario, p.descripcion as puesto, " +
+                              "d.nombDepartamento as departamento, u.sucursalID " +
                               "FROM tbUsuarios u " +
                               "LEFT JOIN tbPuestoDepartamento p ON u.puesDepartID = p.puesDepartID " +
                               "LEFT JOIN tbDepartmento d ON p.deptoId = d.departamentoID " +
@@ -103,6 +104,7 @@ public class LoginActivity extends AppCompatActivity {
                     String email = resultSet.getString("emailUsuario");
                     String puesto = resultSet.getString("puesto");
                     String departamento = resultSet.getString("departamento");
+                    int sucursalID = resultSet.getInt("sucursalID");
                     
                     // Combinamos puesto y departamento para formar el rol
                     String rol = puesto + " - " + departamento;
@@ -112,6 +114,7 @@ public class LoginActivity extends AppCompatActivity {
                     sessionManager.saveUserName(nombre);
                     sessionManager.saveUserEmail(email);
                     sessionManager.saveUserRol(rol);
+                    sessionManager.saveSucursalID(sucursalID);
                     sessionManager.setRememberMe(cbRememberMe.isChecked());
                     sessionManager.setLoggedIn(true);
 
