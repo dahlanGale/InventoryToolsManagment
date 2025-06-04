@@ -324,9 +324,17 @@ public class dialog_agregar_articulos extends AppCompatActivity {
         int usuarioID = sessionManager.getUserID();
         int sucursalID = sessionManager.getSucursalID();
         
-        if (usuarioID <= 0 || sucursalID <= 0) {
-            Toast.makeText(this, "Error: Información de usuario o sucursal no válida", Toast.LENGTH_SHORT).show();
+        Log.d("dialog_agregar_articulos", "Valores recuperados de SessionManager - usuarioID: " + usuarioID + ", sucursalID: " + sucursalID);
+        
+        if (usuarioID <= 0) {
+            Toast.makeText(this, "Error: No se pudo obtener el ID del usuario", Toast.LENGTH_SHORT).show();
             return;
+        }
+        
+        // Si sucursalID es -1 o 0, simplemente advertimos pero continuamos
+        if (sucursalID <= 0) {
+            Log.w("dialog_agregar_articulos", "Advertencia: ID de sucursal inválido: " + sucursalID);
+            // Continuamos con la operación sin necesidad de detenerla
         }
         
         // Obtener los valores de los campos
