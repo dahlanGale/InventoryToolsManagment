@@ -96,13 +96,12 @@ public class ConteoActivity extends AppCompatActivity {
         btnAgregarArticulos.setOnClickListener(v -> {
             // Iniciar el diálogo para agregar artículos
             Intent intent = new Intent(this, com.ioe_enterprice.inventorytoolsmanagment.Utils.dialog_agregar_articulos.class);
-            // Pasar el folio del inventario a la actividad dialog_agregar_articulos
-            try {
-                int inventarioFolioInt = Integer.parseInt(inventarioFolio);
-                intent.putExtra("INVENTARIO_FOLIO", inventarioFolioInt);
-                Log.d("ConteoActivity", "Enviando INVENTARIO_FOLIO: " + inventarioFolioInt);
-            } catch (NumberFormatException e) {
-                Log.e("ConteoActivity", "Error al convertir inventarioFolio a entero: " + inventarioFolio, e);
+            // Pasar el folio del inventario a la actividad dialog_agregar_articulos como String
+            if (inventarioFolio != null && !inventarioFolio.isEmpty()) {
+                intent.putExtra("INVENTARIO_FOLIO", inventarioFolio);
+                Log.d("ConteoActivity", "Enviando INVENTARIO_FOLIO: " + inventarioFolio);
+            } else {
+                Log.e("ConteoActivity", "Error: inventarioFolio es nulo o vacío");
                 Toast.makeText(this, "Error: El folio del inventario no es válido", Toast.LENGTH_SHORT).show();
                 return;
             }

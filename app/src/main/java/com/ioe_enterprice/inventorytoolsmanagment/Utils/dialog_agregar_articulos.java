@@ -42,7 +42,7 @@ public class dialog_agregar_articulos extends AppCompatActivity {
     private SessionManager sessionManager;
     private List<AlmacenDomain> listaAlmacenes = new ArrayList<>();
     private AlmacenDomain almacenSeleccionado = null;
-    private int inventarioFolio = 0;
+    private String inventarioFolio = "";
     
     private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.219:1433/IOE_Business";
     private static final String DB_USER = "Admin1";
@@ -70,8 +70,8 @@ public class dialog_agregar_articulos extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         
         // Obtener el folio de inventario de los extras
-        inventarioFolio = getIntent().getIntExtra("INVENTARIO_FOLIO", 0);
-        if (inventarioFolio == 0) {
+        inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
+        if (inventarioFolio == null || inventarioFolio.isEmpty()) {
             Toast.makeText(this, "Error: No se recibió el folio de inventario", Toast.LENGTH_SHORT).show();
             finish();
             return;
@@ -354,7 +354,7 @@ public class dialog_agregar_articulos extends AppCompatActivity {
                 // Primero obtener el inventarioDocID usando el folio
                 getInventarioIdStmt = connection.prepareStatement(
                         "SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?");
-                getInventarioIdStmt.setInt(1, inventarioFolio);
+                getInventarioIdStmt.setString(1, inventarioFolio);
                 inventarioIdResult = getInventarioIdStmt.executeQuery();
                 
                 int inventarioDocID = 0;
