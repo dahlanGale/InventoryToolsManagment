@@ -46,9 +46,10 @@ public class ConteoActivity extends AppCompatActivity {
     private Set<String> almacenesSet; // Usamos un Set para almacenes únicos
     private String selectedAlmacen = null; // Almacén seleccionado para el filtro (null si ninguno está seleccionado)
     private LinearLayout containerFiltrosAlmacen;
-    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
-    private static final String DB_USER = "IOEMaster";
-    private static final String DB_PASSWORD = "Master.2024";
+    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.219:1433/IOE_Business";
+    private static final String DB_USER = "Admin1";
+    private static final String DB_PASSWORD = "admin123";
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
     private EditText etBuscar;
     private static final int CAMERA_PERMISSION_REQUEST = 100;
     private String tipoConteo;
@@ -95,6 +96,16 @@ public class ConteoActivity extends AppCompatActivity {
         btnAgregarArticulos.setOnClickListener(v -> {
             // Iniciar el diálogo para agregar artículos
             Intent intent = new Intent(this, com.ioe_enterprice.inventorytoolsmanagment.Utils.dialog_agregar_articulos.class);
+            // Pasar el folio del inventario a la actividad dialog_agregar_articulos
+            try {
+                int inventarioFolioInt = Integer.parseInt(inventarioFolio);
+                intent.putExtra("INVENTARIO_FOLIO", inventarioFolioInt);
+                Log.d("ConteoActivity", "Enviando INVENTARIO_FOLIO: " + inventarioFolioInt);
+            } catch (NumberFormatException e) {
+                Log.e("ConteoActivity", "Error al convertir inventarioFolio a entero: " + inventarioFolio, e);
+                Toast.makeText(this, "Error: El folio del inventario no es válido", Toast.LENGTH_SHORT).show();
+                return;
+            }
             startActivityForResult(intent, REQUEST_AGREGAR_ARTICULO);
         });
 

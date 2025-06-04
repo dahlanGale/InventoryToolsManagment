@@ -340,7 +340,9 @@ public class dialog_agregar_articulos extends AppCompatActivity {
         executorService.execute(() -> {
             Connection connection = null;
             PreparedStatement pstmt = null;
+            PreparedStatement getInventarioIdStmt = null;
             ResultSet generatedKeys = null;
+            ResultSet inventarioIdResult = null;
             
             try {
                 Class.forName("net.sourceforge.jtds.jdbc.Driver");
@@ -349,13 +351,30 @@ public class dialog_agregar_articulos extends AppCompatActivity {
                 // Iniciar transacción
                 connection.setAutoCommit(false);
                 
+                // Primero obtener el inventarioDocID usando el folio
+                getInventarioIdStmt = connection.prepareStatement(
+                        "SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?");
+                getInventarioIdStmt.setInt(1, inventarioFolio);
+                inventarioIdResult = getInventarioIdStmt.executeQuery();
+                
+                int inventarioDocID = 0;
+                if (inventarioIdResult.next()) {
+                    inventarioDocID = inventarioIdResult.getInt("inventarioDocID");
+                    Log.d("dialog_agregar_articulos", "inventarioDocID obtenido: " + inventarioDocID);
+                } else {
+                    runOnUiThread(() -> Toast.makeText(dialog_agregar_articulos.this, 
+                            "Error: No se encontró el ID del inventario para el folio: " + inventarioFolio, 
+                            Toast.LENGTH_LONG).show());
+                    return;
+                }
+                
                 // Insertar en dtInventariosArticulos
-                String insertQuery = "INSERT INTO dtInventariosArticulos (inventarioFolio, articuloID, UPC, descripcion, " +
+                String insertQuery = "INSERT INTO dtInventariosArticulos (inventarioDocID, SKU, UPC, descripcionCorta, " +
                         "ctdContada, stockTotal, ubicacionID, usuarioID, costo) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 
                 pstmt = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
-                pstmt.setInt(1, inventarioFolio);
+                pstmt.setInt(1, inventarioDocID);
                 pstmt.setInt(2, sku);
                 pstmt.setLong(3, upc);
                 pstmt.setString(4, descripcion);
@@ -376,13 +395,13 @@ public class dialog_agregar_articulos extends AppCompatActivity {
                     
                     // Actualizar totales en cbInventarios
                     String updateQuery = "UPDATE cbInventarios SET totalArticulos = (SELECT COUNT(*) FROM dtInventariosArticulos " +
-                            "WHERE inventarioFolio = ?), totalPiezas = (SELECT SUM(ctdContada) FROM dtInventariosArticulos " +
-                            "WHERE inventarioFolio = ?) WHERE inventarioFolio = ?";
+                            "WHERE inventarioDocID = ?), totalPiezas = (SELECT SUM(ctdContada) FROM dtInventariosArticulos " +
+                            "WHERE inventarioDocID = ?) WHERE inventarioDocID = ?";
                     
                     pstmt = connection.prepareStatement(updateQuery);
-                    pstmt.setInt(1, inventarioFolio);
-                    pstmt.setInt(2, inventarioFolio);
-                    pstmt.setInt(3, inventarioFolio);
+                    pstmt.setInt(1, inventarioDocID);
+                    pstmt.setInt(2, inventarioDocID);
+                    pstmt.setInt(3, inventarioDocID);
                     pstmt.executeUpdate();
                     
                     // Confirmar transacción
@@ -431,6 +450,8 @@ public class dialog_agregar_articulos extends AppCompatActivity {
             } finally {
                 try {
                     if (generatedKeys != null) generatedKeys.close();
+                    if (inventarioIdResult != null) inventarioIdResult.close();
+                    if (getInventarioIdStmt != null) getInventarioIdStmt.close();
                     if (pstmt != null) pstmt.close();
                     if (connection != null) {
                         connection.setAutoCommit(true);

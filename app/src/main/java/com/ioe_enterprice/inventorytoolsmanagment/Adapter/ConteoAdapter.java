@@ -33,9 +33,9 @@ public class ConteoAdapter extends RecyclerView.Adapter<ConteoAdapter.ConteoView
     private List<ArticuloDomain> articuloList; // Lista principal (todos los datos)
     private List<ArticuloDomain> articuloListFiltrada; // Lista temporal para mostrar resultados filtrados
     private Context context;
-    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
-    private static final String DB_USER = "IOEMaster";
-    private static final String DB_PASSWORD = "Master.2024";
+    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.219:1433/IOE_Business";
+    private static final String DB_USER = "Admin1";
+    private static final String DB_PASSWORD = "admin123";
 
     public ConteoAdapter(List<ArticuloDomain> articuloList, Context context) {
         this.articuloList = articuloList;

@@ -43,9 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout logoutBtm;
 
     // Datos de conexión a la base de datos
-    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.246:1433/IOE_Business";
-    private static final String DB_USER = "IOEMaster";
-    private static final String DB_PASSWORD = "Master.2024";
+    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.219:1433/IOE_Business";
+    private static final String DB_USER = "Admin1";
+    private static final String DB_PASSWORD = "admin123";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
