@@ -1,11 +1,13 @@
 package com.ioe_enterprice.inventorytoolsmanagment.Utils;
 
-import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.text.TextUtils;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
@@ -13,184 +15,484 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
-import com.ioe_enterprice.inventorytoolsmanagment.Activity.ScannerActivity;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+import com.ioe_enterprice.inventorytoolsmanagment.Domain.AlmacenDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.Domain.ArticuloDomain;
 import com.ioe_enterprice.inventorytoolsmanagment.R;
+import com.ioe_enterprice.inventorytoolsmanagment.Utils.SessionManager;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class dialog_agregar_articulos extends AppCompatActivity {
-
-    private TextInputEditText etSKU, etUPC, etDescripcion, etCantidad, etAlmacen;
+    private TextInputEditText etSKU, etUPC, etDescripcion, etCantidad, etCosto;
     private Spinner spinnerAlmacen;
-    private ImageButton btnEscanearUPC;
     private Button btnCancelar, btnGuardar;
-    private static final int CAMERA_PERMISSION_REQUEST = 100;
+    private ImageButton btnEscanearUPC;
+    private SessionManager sessionManager;
+    private List<AlmacenDomain> listaAlmacenes = new ArrayList<>();
+    private AlmacenDomain almacenSeleccionado = null;
+    private String inventarioFolio = "";
 
-    // Launcher para iniciar ScannerActivity y recibir su resultado
-    private final ActivityResultLauncher<Intent> scannerLauncher = registerForActivityResult(
+    private static final String DB_URL = "jdbc:jtds:sqlserver://192.168.10.219:1433/IOE_Business";
+    private static final String DB_USER = "Admin1";
+    private static final String DB_PASSWORD = "admin123";
+    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+    private final ActivityResultLauncher<Intent> barcodeLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                    if (result.getData() != null) {
-                        String codigoBarras = result.getData().getStringExtra("CODIGO_BARRAS");
-                        if (codigoBarras != null && !codigoBarras.isEmpty()) {
-                            etUPC.setText(codigoBarras);
-                            Toast.makeText(dialog_agregar_articulos.this, "Código escaneado: " + codigoBarras, Toast.LENGTH_SHORT).show();
-                        }
-                    }
+                IntentResult resultBarcode = IntentIntegrator.parseActivityResult(result.getResultCode(), result.getData());
+                if (resultBarcode != null && resultBarcode.getContents() != null) {
+                    String upcScanned = resultBarcode.getContents();
+                    etUPC.setText(upcScanned);
+                    buscarArticuloPorUPC(upcScanned);
                 }
-            });
+            }
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dialog_agregar_articulos);
 
+        // Inicializar SessionManager
+        sessionManager = new SessionManager(this);
+
+        // Obtener el folio de inventario de los extras
+        inventarioFolio = getIntent().getStringExtra("INVENTARIO_FOLIO");
+        if (inventarioFolio == null || inventarioFolio.isEmpty()) {
+            Toast.makeText(this, "Error: No se recibió el folio de inventario", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         // Inicializar vistas
         etSKU = findViewById(R.id.etSKU);
         etUPC = findViewById(R.id.etUPC);
         etDescripcion = findViewById(R.id.etDescripcion);
         etCantidad = findViewById(R.id.etCantidad);
+        etCosto = findViewById(R.id.etCosto);
         spinnerAlmacen = findViewById(R.id.spinnerAlmacen);
-
         btnCancelar = findViewById(R.id.btnCancelar);
         btnGuardar = findViewById(R.id.btnGuardar);
         btnEscanearUPC = findViewById(R.id.btnEscanearUPC);
 
-        // Configurar el botón de cancelar
-        btnCancelar.setOnClickListener(v -> {
-            setResult(Activity.RESULT_CANCELED);
-            finish();
+        // Configurar listener para UPC para autocompleter los datos del artículo
+        etUPC.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (s != null && s.length() > 0) {
+                    String upc = s.toString();
+                    if (upc.length() >= 8) { // UPC mínimo para búsqueda
+                        buscarArticuloPorUPC(upc);
+                    }
+                }
+            }
         });
 
-        // Configurar el botón de guardar
+        // Cargar los almacenes para el spinner
+        cargarAlmacenes();
+
+        // Configurar listeners de botones
+        btnEscanearUPC.setOnClickListener(v -> {
+            IntentIntegrator intentIntegrator = new IntentIntegrator(this);
+            intentIntegrator.setPrompt("Escanea el código de barras");
+            intentIntegrator.setBeepEnabled(true);
+            intentIntegrator.setOrientationLocked(false);
+            intentIntegrator.initiateScan();
+        });
+
+        btnCancelar.setOnClickListener(v -> finish());
+
         btnGuardar.setOnClickListener(v -> {
             if (validarCampos()) {
                 guardarArticulo();
             }
         });
 
-        // Configurar el botón de escanear UPC
-        btnEscanearUPC.setOnClickListener(v -> {
-            // Comprobar si tenemos permiso de cámara
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                // Solicitar permiso si no lo tenemos
-                ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST);
-            } else {
-                // Iniciar el escáner si tenemos permiso
-                startScanner();
+        // Listener para el spinner de almacenes
+        spinnerAlmacen.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                almacenSeleccionado = listaAlmacenes.get(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                almacenSeleccionado = null;
             }
         });
     }
 
-    // Método para iniciar la actividad de escaneo
-    private void startScanner() {
-        Intent intent = new Intent(this, ScannerActivity.class);
-        scannerLauncher.launch(intent);
-    }
+    /**
+     * Carga los almacenes disponibles para la sucursal del usuario actual
+     */
+    private void cargarAlmacenes() {
+        int sucursalID = sessionManager.getSucursalID();
 
-    // Validación de permisos de cámara
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_REQUEST) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permiso concedido, iniciar el escáner
-                startScanner();
-            } else {
-                // Permiso denegado, mostrar mensaje
-                Toast.makeText(this, "Se requiere permiso de cámara para escanear códigos de barras", Toast.LENGTH_SHORT).show();
-            }
+        Log.d("dialog_agregar_articulos", "Cargando almacenes. sucursalID: " + sucursalID);
+
+        if (sucursalID <= 0) {
+            // Mostrar una advertencia en lugar de un error fatal
+            Log.w("dialog_agregar_articulos", "Advertencia: No se encontró la sucursal del usuario. Se cargarán todos los almacenes disponibles.");
+            Toast.makeText(this, "Advertencia: No se pudo determinar su sucursal. Se mostrarán todos los almacenes disponibles.", Toast.LENGTH_LONG).show();
+            // Continuamos con la ejecución, cargaremos todos los almacenes sin filtrar por sucursalID
         }
+
+        executorService.execute(() -> {
+            Connection connection = null;
+            PreparedStatement statement = null;
+            ResultSet resultSet = null;
+
+            try {
+                Class.forName("net.sourceforge.jtds.jdbc.Driver");
+                connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+                String query;
+                if (sucursalID > 0) {
+                    // Consulta original filtrada por sucursal
+                    query = "SELECT a.almacenID, a.almacenDescripcion, u.ubicacionID " +
+                            "FROM tbAlmacen a " +
+                            "INNER JOIN tbUbicacion u ON a.almacenID = u.almacenID " +
+                            "WHERE a.status = 'A' AND a.sucursalID = ?";
+                    statement = connection.prepareStatement(query);
+                    statement.setInt(1, sucursalID);
+                } else {
+                    // Consulta para todos los almacenes activos sin filtrar por sucursal
+                    query = "SELECT a.almacenID, a.almacenDescripcion, u.ubicacionID " +
+                            "FROM tbAlmacen a " +
+                            "INNER JOIN tbUbicacion u ON a.almacenID = u.almacenID " +
+                            "WHERE a.status = 'A'";
+                    statement = connection.prepareStatement(query);
+                }
+
+                resultSet = statement.executeQuery();
+
+                listaAlmacenes.clear();
+                while (resultSet.next()) {
+                    int almacenID = resultSet.getInt("almacenID");
+                    String descripcion = resultSet.getString("almacenDescripcion");
+                    int ubicacionID = resultSet.getInt("ubicacionID");
+
+                    AlmacenDomain almacen = new AlmacenDomain(almacenID, descripcion, ubicacionID);
+                    listaAlmacenes.add(almacen);
+                }
+
+                runOnUiThread(() -> {
+                    if (listaAlmacenes.isEmpty()) {
+                        Toast.makeText(dialog_agregar_articulos.this,
+                                "No se encontraron almacenes disponibles", Toast.LENGTH_SHORT).show();
+                        // No cerramos la actividad, dejamos que el usuario pueda intentar otra opción
+                    } else {
+                        // Crear adaptador para el spinner con la lista de almacenes
+                        ArrayAdapter<AlmacenDomain> adapter = new ArrayAdapter<>(
+                                dialog_agregar_articulos.this,
+                                android.R.layout.simple_spinner_dropdown_item,
+                                listaAlmacenes);
+                        spinnerAlmacen.setAdapter(adapter);
+                    }
+                });
+
+            } catch (Exception e) {
+                Log.e("DB_ERROR", "Error al cargar almacenes", e);
+                runOnUiThread(() -> {
+                    Toast.makeText(dialog_agregar_articulos.this,
+                            "Error al cargar almacenes: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                    // No cerramos la actividad automáticamente
+                });
+            } finally {
+                try {
+                    if (resultSet != null) resultSet.close();
+                    if (statement != null) statement.close();
+                    if (connection != null) connection.close();
+                } catch (SQLException e) {
+                    Log.e("DB_ERROR", "Error al cerrar conexión", e);
+                }
+            }
+        });
     }
 
-    // Validar que todos los campos obligatorios estén completos
+    /**
+     * Busca un artículo por su UPC y autocompleta los campos
+     * @param upc UPC del artículo a buscar
+     */
+    private void buscarArticuloPorUPC(String upc) {
+        executorService.execute(() -> {
+            Connection connection = null;
+            PreparedStatement statement = null;
+            ResultSet resultSet = null;
+
+            try {
+                Class.forName("net.sourceforge.jtds.jdbc.Driver");
+                connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+                String query = "SELECT articuloID, descripcion, UPC, costo " +
+                        "FROM catArticulos " +
+                        "WHERE UPC = ?";
+
+                statement = connection.prepareStatement(query);
+                statement.setString(1, upc);
+                resultSet = statement.executeQuery();
+
+                if (resultSet.next()) {
+                    int sku = resultSet.getInt("articuloID");
+                    String descripcion = resultSet.getString("descripcion");
+                    double costo = resultSet.getDouble("costo");
+
+                    runOnUiThread(() -> {
+                        etSKU.setText(String.valueOf(sku));
+                        etDescripcion.setText(descripcion);
+                        etCosto.setText(String.valueOf(costo));
+                        etCantidad.setText("1"); // Valor predeterminado
+                        etCantidad.requestFocus();
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        Toast.makeText(dialog_agregar_articulos.this,
+                                "No se encontró un artículo con el UPC: " + upc,
+                                Toast.LENGTH_SHORT).show();
+                    });
+                }
+
+            } catch (Exception e) {
+                Log.e("DB_ERROR", "Error al buscar artículo por UPC", e);
+                runOnUiThread(() -> {
+                    Toast.makeText(dialog_agregar_articulos.this,
+                            "Error al buscar artículo: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
+            } finally {
+                try {
+                    if (resultSet != null) resultSet.close();
+                    if (statement != null) statement.close();
+                    if (connection != null) connection.close();
+                } catch (SQLException e) {
+                    Log.e("DB_ERROR", "Error al cerrar conexión", e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Valida que todos los campos requeridos estén completos
+     * @return true si son válidos, false en caso contrario
+     */
     private boolean validarCampos() {
         boolean isValid = true;
-        
-        // Validar SKU
-        if (TextUtils.isEmpty(etSKU.getText())) {
-            etSKU.setError("El SKU es obligatorio");
+
+        if (etSKU.getText().toString().isEmpty()) {
+            etSKU.setError("SKU requerido");
             isValid = false;
         }
-        
-        // Validar UPC
-        if (TextUtils.isEmpty(etUPC.getText())) {
-            etUPC.setError("El UPC es obligatorio");
+
+        if (etUPC.getText().toString().isEmpty()) {
+            etUPC.setError("UPC requerido");
             isValid = false;
         }
-        
-        // Validar descripción
-        if (TextUtils.isEmpty(etDescripcion.getText())) {
-            etDescripcion.setError("La descripción es obligatoria");
+
+        if (etDescripcion.getText().toString().isEmpty()) {
+            etDescripcion.setError("Descripción requerida");
             isValid = false;
         }
-        
-        // Validar cantidad
-        if (TextUtils.isEmpty(etCantidad.getText())) {
-            etCantidad.setError("La cantidad es obligatoria");
+
+        if (etCantidad.getText().toString().isEmpty()) {
+            etCantidad.setError("Cantidad requerida");
             isValid = false;
         }
-        
-        // Validar almacén
-        if (TextUtils.isEmpty(etAlmacen.getText())) {
-            etAlmacen.setError("El almacén es obligatorio");
+
+        if (etCosto.getText().toString().isEmpty()) {
+            etCosto.setError("Costo requerido");
             isValid = false;
         }
-        
+
+        if (almacenSeleccionado == null) {
+            Toast.makeText(this, "Seleccione un almacén", Toast.LENGTH_SHORT).show();
+            isValid = false;
+        }
+
         return isValid;
     }
-    
-    // Guardar el artículo y regresar el resultado
+
+    /**
+     * Guarda el artículo en la base de datos
+     */
     private void guardarArticulo() {
-        try {
-            // Obtener los valores de los campos
-            int sku = Integer.parseInt(etSKU.getText().toString());
-            long upc = Long.parseLong(etUPC.getText().toString());
-            String descripcion = etDescripcion.getText().toString();
-            Double cantidad = Double.parseDouble(etCantidad.getText().toString());
-            String almacen = etAlmacen.getText().toString();
+        int usuarioID = sessionManager.getUserID();
+        int sucursalID = sessionManager.getSucursalID();
 
-            // Crear el objeto ArticuloDomain
-            // Nota: inventariosArtID, stockTotal, ubicacionID y usuarioID se configurarán en la base de datos
-            // Aquí se establecen valores temporales
-            ArticuloDomain nuevoArticulo = new ArticuloDomain(
-                    0, // inventariosArtID temporal (se asignará en la base de datos)
-                    sku,
-                    upc,
-                    descripcion,
-                    cantidad,
-                    0, // stockTotal (se actualizará según la base de datos)
-                    0, // ubicacionID (se asignará en la base de datos)
-                    0, // usuarioID (se obtendrá del usuario actual en ConteoActivity)
-                    almacen
-            );
-            
-            // Preparar el intent de resultado
-            Intent resultIntent = new Intent();
-            resultIntent.putExtra("SKU", sku);
-            resultIntent.putExtra("UPC", upc);
-            resultIntent.putExtra("DESCRIPCION", descripcion);
-            resultIntent.putExtra("CANTIDAD", cantidad);
-            resultIntent.putExtra("ALMACEN", almacen);
+        Log.d("dialog_agregar_articulos", "Valores recuperados de SessionManager - usuarioID: " + usuarioID + ", sucursalID: " + sucursalID);
 
-            // Establecer el resultado como OK y enviar el intent
-            setResult(Activity.RESULT_OK, resultIntent);
+        if (usuarioID <= 0) {
+            Toast.makeText(this, "Error: No se pudo obtener el ID del usuario", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-            // Cerrar la actividad
-            finish();
+        // Si sucursalID es -1 o 0, simplemente advertimos pero continuamos
+        if (sucursalID <= 0) {
+            Log.w("dialog_agregar_articulos", "Advertencia: ID de sucursal inválido: " + sucursalID);
+            // Continuamos con la operación sin necesidad de detenerla
+        }
 
-        } catch (NumberFormatException e) {
-            Log.e("AGREGAR_ARTICULO", "Error al convertir valores numéricos", e);
-            Toast.makeText(this, "Error al procesar los datos. Verifique que los valores numéricos sean correctos", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Log.e("AGREGAR_ARTICULO", "Error al guardar el artículo", e);
-            Toast.makeText(this, "Error al guardar el artículo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        // Obtener los valores de los campos
+        int sku = Integer.parseInt(etSKU.getText().toString());
+        long upc = Long.parseLong(etUPC.getText().toString());
+        String descripcion = etDescripcion.getText().toString();
+        double cantidad = Double.parseDouble(etCantidad.getText().toString());
+        double costo = Double.parseDouble(etCosto.getText().toString());
+        int ubicacionID = almacenSeleccionado.getUbicacionID();
+
+        executorService.execute(() -> {
+            Connection connection = null;
+            PreparedStatement pstmt = null;
+            PreparedStatement getInventarioIdStmt = null;
+            ResultSet generatedKeys = null;
+            ResultSet inventarioIdResult = null;
+
+            try {
+                Class.forName("net.sourceforge.jtds.jdbc.Driver");
+                connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+
+                // Iniciar transacción
+                connection.setAutoCommit(false);
+
+                // Primero obtener el inventarioDocID usando el folio
+                getInventarioIdStmt = connection.prepareStatement(
+                        "SELECT inventarioDocID FROM cbInventarios WHERE inventarioFolio = ?");
+                getInventarioIdStmt.setString(1, inventarioFolio);
+                inventarioIdResult = getInventarioIdStmt.executeQuery();
+
+                int inventarioDocID = 0;
+                if (inventarioIdResult.next()) {
+                    inventarioDocID = inventarioIdResult.getInt("inventarioDocID");
+                    Log.d("dialog_agregar_articulos", "inventarioDocID obtenido: " + inventarioDocID);
+                } else {
+                    runOnUiThread(() -> Toast.makeText(dialog_agregar_articulos.this,
+                            "Error: No se encontró el ID del inventario para el folio: " + inventarioFolio,
+                            Toast.LENGTH_LONG).show());
+                    return;
+                }
+
+                // Insertar en dtInventariosArticulos
+                String insertQuery = "INSERT INTO dtInventariosArticulos (inventarioDocID, SKU, UPC, descripcionCorta, " +
+                        "ctdContada, stockTotal, ubicacionID, usuarioID, costo) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+                pstmt = connection.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
+                pstmt.setInt(1, inventarioDocID);
+                pstmt.setInt(2, sku);
+                pstmt.setLong(3, upc);
+                pstmt.setString(4, descripcion);
+                pstmt.setDouble(5, cantidad);
+                pstmt.setDouble(6, 0); // Stock total se actualizará después
+                pstmt.setInt(7, ubicacionID);
+                pstmt.setInt(8, usuarioID);
+                pstmt.setDouble(9, costo);
+
+                int insertedRows = pstmt.executeUpdate();
+
+                if (insertedRows > 0) {
+                    generatedKeys = pstmt.getGeneratedKeys();
+                    int inventarioArticuloID = 0;
+                    if (generatedKeys.next()) {
+                        inventarioArticuloID = generatedKeys.getInt(1);
+                    }
+
+                    // Actualizar totales en cbInventarios
+                    String updateQuery = "UPDATE cbInventarios SET totalArticulos = (SELECT COUNT(*) FROM dtInventariosArticulos " +
+                            "WHERE inventarioDocID = ?), totalPiezas = (SELECT SUM(ctdContada) FROM dtInventariosArticulos " +
+                            "WHERE inventarioDocID = ?) WHERE inventarioDocID = ?";
+
+                    pstmt = connection.prepareStatement(updateQuery);
+                    pstmt.setInt(1, inventarioDocID);
+                    pstmt.setInt(2, inventarioDocID);
+                    pstmt.setInt(3, inventarioDocID);
+                    pstmt.executeUpdate();
+
+                    // Confirmar transacción
+                    connection.commit();
+
+                    // Crear objeto de artículo para devolver
+                    final ArticuloDomain articulo = new ArticuloDomain();
+                    articulo.setInventariosArtID(inventarioArticuloID);
+                    articulo.setSKU(sku);
+                    articulo.setUPC(upc);
+                    articulo.setDescripcion(descripcion);
+                    articulo.setCtdContada(cantidad);
+                    articulo.setUbicacionID(ubicacionID);
+                    articulo.setUsuarioID(usuarioID);
+                    articulo.setAlmacenDescripcion(almacenSeleccionado.getAlmacenDescripcion());
+
+                    runOnUiThread(() -> {
+                        // Devolver el ID del artículo insertado
+                        Intent intent = new Intent();
+                        intent.putExtra("INVENTARIO_ART_ID", articulo.getInventariosArtID());
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    });
+                } else {
+                    runOnUiThread(() -> {
+                        Toast.makeText(dialog_agregar_articulos.this,
+                                "Error al insertar artículo", Toast.LENGTH_SHORT).show();
+                    });
+                    connection.rollback();
+                }
+
+            } catch (Exception e) {
+                Log.e("DB_ERROR", "Error al guardar artículo", e);
+                try {
+                    if (connection != null) {
+                        connection.rollback();
+                    }
+                } catch (SQLException ex) {
+                    Log.e("DB_ERROR", "Error al hacer rollback", ex);
+                }
+                runOnUiThread(() -> {
+                    Toast.makeText(dialog_agregar_articulos.this,
+                            "Error al guardar artículo: " + e.getMessage(),
+                            Toast.LENGTH_SHORT).show();
+                });
+            } finally {
+                try {
+                    if (generatedKeys != null) generatedKeys.close();
+                    if (inventarioIdResult != null) inventarioIdResult.close();
+                    if (getInventarioIdStmt != null) getInventarioIdStmt.close();
+                    if (pstmt != null) pstmt.close();
+                    if (connection != null) {
+                        connection.setAutoCommit(true);
+                        connection.close();
+                    }
+                } catch (SQLException e) {
+                    Log.e("DB_ERROR", "Error al cerrar conexión", e);
+                }
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executorService != null && !executorService.isShutdown()) {
+            executorService.shutdown();
         }
     }
 }
