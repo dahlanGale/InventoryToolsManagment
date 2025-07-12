@@ -23,6 +23,10 @@ public class ArticuloDomain {
         this.almacenDescripcion = almacenDescripcion;
     }
 
+    // Constructor sin parámetros para creación de objetos
+    public ArticuloDomain() {
+    }
+
     public int getInventariosArtID() { return inventariosArtID; }
     public int getSKU() { return SKU; }
     public long getUPC() { return UPC; }
@@ -33,5 +37,14 @@ public class ArticuloDomain {
     public int getUsuarioID() { return usuarioID; }
     public String getAlmacenDescripcion() {return  almacenDescripcion; }
 
+    public void setInventariosArtID(int inventariosArtID) { this.inventariosArtID = inventariosArtID; }
+    public void setSKU(int SKU) { this.SKU = SKU; }
+    public void setUPC(long UPC) { this.UPC = UPC; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public void setCtdContada(Double ctdContada) { this.ctdContada = ctdContada; }
+    public void setStockTotal(double stockTotal) { this.stockTotal = stockTotal; }
+    public void setUbicacionID(int ubicacionID) { this.ubicacionID = ubicacionID; }
+    public void setUsuarioID(int usuarioID) { this.usuarioID = usuarioID; }
+    public void setAlmacenDescripcion(String almacenDescripcion) { this.almacenDescripcion = almacenDescripcion; }
+
 }
