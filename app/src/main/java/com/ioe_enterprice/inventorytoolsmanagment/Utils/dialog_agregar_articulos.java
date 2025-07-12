@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -24,7 +26,9 @@ import com.ioe_enterprice.inventorytoolsmanagment.R;
 public class dialog_agregar_articulos extends AppCompatActivity {
 
     private TextInputEditText etSKU, etUPC, etDescripcion, etCantidad, etAlmacen;
-    private Button btnCancelar, btnGuardar, btnEscanearUPC;
+    private Spinner spinnerAlmacen;
+    private ImageButton btnEscanearUPC;
+    private Button btnCancelar, btnGuardar;
     private static final int CAMERA_PERMISSION_REQUEST = 100;
 
     // Launcher para iniciar ScannerActivity y recibir su resultado
@@ -52,8 +56,8 @@ public class dialog_agregar_articulos extends AppCompatActivity {
         etUPC = findViewById(R.id.etUPC);
         etDescripcion = findViewById(R.id.etDescripcion);
         etCantidad = findViewById(R.id.etCantidad);
-        etAlmacen = findViewById(R.id.etAlmacen);
-        
+        spinnerAlmacen = findViewById(R.id.spinnerAlmacen);
+
         btnCancelar = findViewById(R.id.btnCancelar);
         btnGuardar = findViewById(R.id.btnGuardar);
         btnEscanearUPC = findViewById(R.id.btnEscanearUPC);
@@ -151,7 +155,7 @@ public class dialog_agregar_articulos extends AppCompatActivity {
             String descripcion = etDescripcion.getText().toString();
             Double cantidad = Double.parseDouble(etCantidad.getText().toString());
             String almacen = etAlmacen.getText().toString();
-            
+
             // Crear el objeto ArticuloDomain
             // Nota: inventariosArtID, stockTotal, ubicacionID y usuarioID se configurarán en la base de datos
             // Aquí se establecen valores temporales
@@ -174,13 +178,13 @@ public class dialog_agregar_articulos extends AppCompatActivity {
             resultIntent.putExtra("DESCRIPCION", descripcion);
             resultIntent.putExtra("CANTIDAD", cantidad);
             resultIntent.putExtra("ALMACEN", almacen);
-            
+
             // Establecer el resultado como OK y enviar el intent
             setResult(Activity.RESULT_OK, resultIntent);
-            
+
             // Cerrar la actividad
             finish();
-            
+
         } catch (NumberFormatException e) {
             Log.e("AGREGAR_ARTICULO", "Error al convertir valores numéricos", e);
             Toast.makeText(this, "Error al procesar los datos. Verifique que los valores numéricos sean correctos", Toast.LENGTH_LONG).show();
