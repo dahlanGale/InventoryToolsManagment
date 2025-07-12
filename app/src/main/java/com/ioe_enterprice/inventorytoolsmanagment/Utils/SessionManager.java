@@ -12,6 +12,7 @@ public class SessionManager {
     private static final String KEY_USER_NAME = "userName";
     private static final String KEY_USER_ROL = "userRol";
     private static final String KEY_USER_EMAIL = "userEmail";
+    private static final String KEY_SUCURSAL_ID = "sucursalID"; // Agregado: ID de sucursal
     private SharedPreferences sharedPreferences;
     private SharedPreferences.Editor editor;
 
@@ -75,6 +76,17 @@ public class SessionManager {
         return sharedPreferences.getInt(KEY_UBICACION_ID, -1);
     }
 
+    // 🔹 Guardar sucursalID en caché
+    public void saveSucursalID(int sucursalID) {
+        editor.putInt(KEY_SUCURSAL_ID, sucursalID);
+        editor.apply();
+    }
+
+    // 🔹 Obtener sucursalID
+    public int getSucursalID() {
+        return sharedPreferences.getInt(KEY_SUCURSAL_ID, -1); // -1 si no existe
+    }
+
     // 🔹 Limpiar sesión (logout)
     public void clearSession() {
         editor.remove(KEY_USER_ID);
@@ -84,6 +96,7 @@ public class SessionManager {
         editor.remove(KEY_USER_NAME);
         editor.remove(KEY_USER_ROL);
         editor.remove(KEY_USER_EMAIL);
+        editor.remove(KEY_SUCURSAL_ID); // Agregado: limpiar sucursalID
         editor.apply();
     }
 
